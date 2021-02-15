@@ -1,34 +1,17 @@
-package hashsum;
+package info.kgeorgiy.ja.asmirko.walk.hashsum;
 
-public class PJWHashSum implements HashSumAlgorithm{
+public class PJWHashSum implements HashSumAlgorithm {
+
     @Override
-    public long computeHashSum(long prevHash, CharSequence str, int buffSize){
-        long BitsInLong        = (long)(8 * 8);
-        long ThreeQuarters     = (long)((BitsInLong  * 3) / 4);
-        long OneEighth         = (long)(BitsInLong / 8);
-        long HighBits          = ~((~0L) >> OneEighth);
-        long test              = 0;
-
-        for(int i = 0; i < buffSize; i++){
-            prevHash = (prevHash << OneEighth) + str.charAt(i);
-
-            if((test = prevHash & HighBits)  != 0){
-                    prevHash = (( prevHash ^ (test >> ThreeQuarters)) & (~HighBits));
-                }
+    public long computeHashSum(long start, final byte[] bytes, final int size) {
+        for (int i = 0; i < size; i++) {
+            start = (start << 8) + (bytes[i] & 0xff);
+            final long high = start & 0xff00_0000_0000_0000L;
+            if (high != 0) {
+                start ^= high >> 48;
+                start &= ~high;
+            }
         }
-        return prevHash;
+        return start;
     }
-
-    // @Override
-    // public long computeHashSum(long prevHash, CharSequence str, int buffSize){
-    //     long hash = prevHash;
-    //     int bits = 8 * 8;
-    //     long high = 0;
-    //     str.chars()
-    //         .forEach(ch -> {
-    //             hash = hash << bits / 8 + ch;
-
-    //         });
-    //     return 0L;
-    // }
 }

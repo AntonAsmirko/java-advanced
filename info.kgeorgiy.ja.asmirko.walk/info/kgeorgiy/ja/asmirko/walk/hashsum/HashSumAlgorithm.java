@@ -1,5 +1,5 @@
-package hashsum;
+package info.kgeorgiy.ja.asmirko.walk.hashsum;
 
 public interface HashSumAlgorithm {
-    public long computeHashSum(long prevHash, CharSequence str, int buffSize);
+    public long computeHashSum(long prevHash, byte[] str, int buffSize);
 }
