@@ -10,6 +10,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.LinkedList;
@@ -65,7 +66,7 @@ public class Walk {
         }
     }
 
-    private static Long hashOfFile(Path file) throws IOException {
+    private static Long hashOfFile(Path file) throws IOException, NoSuchFileException {
         long hashSum = 0L;
         int charsRead;
         var in = Files.newInputStream(file);
