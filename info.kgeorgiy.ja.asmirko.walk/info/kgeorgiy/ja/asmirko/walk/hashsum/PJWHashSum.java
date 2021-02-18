@@ -1,7 +1,11 @@
 package info.kgeorgiy.ja.asmirko.walk.hashsum;
 
-public class PJWHashSum implements HashSumAlgorithm {
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 
+public class PJWHashSum implements HashSumAlgorithm {
     @Override
     public long computeHashSum(long start, final byte[] bytes, final int size) {
         for (int i = 0; i < size; i++) {
@@ -13,5 +17,17 @@ public class PJWHashSum implements HashSumAlgorithm {
             }
         }
         return start;
+    }
+
+    @Override
+    public long hashOfFile(Path file) throws IOException, NoSuchFileException {
+        byte[] inByteBuffer = new byte[1024 * 2];
+        long hashSum = 0L;
+        int charsRead;
+        var in = Files.newInputStream(file);
+        while ((charsRead = in.read(inByteBuffer)) != -1) {
+            hashSum = computeHashSum(hashSum, inByteBuffer, charsRead);
+        }
+        return hashSum;
     }
 }
