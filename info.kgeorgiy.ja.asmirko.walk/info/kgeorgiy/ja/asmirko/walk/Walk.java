@@ -1,6 +1,8 @@
 package info.kgeorgiy.ja.asmirko.walk;
 
 import info.kgeorgiy.ja.asmirko.walk.filewalkers.FileWalker;
+import info.kgeorgiy.ja.asmirko.walk.filewalkers.RecursiveWalker;
+import info.kgeorgiy.ja.asmirko.walk.filewalkers.Walker;
 import info.kgeorgiy.ja.asmirko.walk.hashsum.PJWHashSum;
 
 import java.io.IOException;
@@ -19,7 +21,7 @@ public class Walk {
         try {
             inFile = Path.of(args[0]);
             outFile = Path.of(args[1]);
-            FileWalker fileWalker = new FileWalker(inFile, outFile, new PJWHashSum());
+            Walker fileWalker = new RecursiveWalker(inFile, outFile, new PJWHashSum());
             fileWalker.walk();
         } catch (IOException | IllegalArgumentException e) {
             //if (e instanceof IllegalArgumentException) e.printStackTrace();

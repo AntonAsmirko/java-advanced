@@ -12,11 +12,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 public class RecursiveFileVisitor implements FileVisitor<Path>, Closeable {
 
     private HashSumAlgorithm hashSumAlgorithm;
-    private final BufferedWriter out;
+    private BufferedWriter out;
 
-    public RecursiveFileVisitor(HashSumAlgorithm hashSumAlgorithm, Path outStream, Charset encoding) throws IOException {
+    public RecursiveFileVisitor(HashSumAlgorithm hashSumAlgorithm) {
         this.hashSumAlgorithm = hashSumAlgorithm;
-        out = Files.newBufferedWriter(outStream, encoding);
     }
 
     @Override
@@ -32,13 +31,20 @@ public class RecursiveFileVisitor implements FileVisitor<Path>, Closeable {
         } catch (IOException | InvalidPathException ignored) {
         } finally {
             out.write(String.format("%016x %s", hash, file));
+            out.newLine();
         }
         return FileVisitResult.CONTINUE;
     }
 
     @Override
     public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-        throw exc;
+        if (exc instanceof NoSuchFileException) {
+            out.write(String.format("%016x %s", 0L, file));
+            out.newLine();
+            return FileVisitResult.CONTINUE;
+        } else {
+            throw exc;
+        }
     }
 
     @Override
@@ -50,5 +56,9 @@ public class RecursiveFileVisitor implements FileVisitor<Path>, Closeable {
     public void close() throws IOException {
         hashSumAlgorithm = null;
         out.close();
+    }
+
+    public void setOut(BufferedWriter bw) {
+        out = bw;
     }
 }

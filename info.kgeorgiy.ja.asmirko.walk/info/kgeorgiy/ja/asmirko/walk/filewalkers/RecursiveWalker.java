@@ -17,13 +17,21 @@ public class RecursiveWalker extends AbstractWalker {
 
     @Override
     public void walk() throws IOException, InvalidPathException {
-        try (RecursiveFileVisitor visitor = new RecursiveFileVisitor(hashSumAlgorithm, outputPath, encoding)) {
-            for (Iterator<String> it = Files.lines(inputPath, encoding).iterator(); it.hasNext(); ) {
-                String line = it.next();
+        RecursiveFileVisitor visitor = new RecursiveFileVisitor(hashSumAlgorithm);
+        BufferedWriter out = Files.newBufferedWriter(outputPath, encoding);
+        visitor.setOut(out);
+        for (Iterator<String> it = Files.lines(inputPath, encoding).iterator(); it.hasNext(); ) {
+            String line = it.next();
+            try {
                 Path startPoint = Paths.get(line);
                 startPoint.normalize();
                 Files.walkFileTree(startPoint, visitor);
+            } catch (IOException | InvalidPathException  e) {
+                out.write(String.format("%016x %s", 0L, line));
+                out.newLine();
             }
         }
+        out.close();
+        visitor.close();
     }
 }
