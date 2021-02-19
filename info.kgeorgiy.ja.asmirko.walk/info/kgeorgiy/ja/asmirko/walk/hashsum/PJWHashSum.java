@@ -20,7 +20,7 @@ public class PJWHashSum implements HashSumAlgorithm {
     }
 
     @Override
-    public long hashOfFile(Path file) throws IOException, NoSuchFileException {
+    public long hashOfFile(Path file) throws IOException {
         byte[] inByteBuffer = new byte[1024 * 2];
         long hashSum = 0L;
         int charsRead;

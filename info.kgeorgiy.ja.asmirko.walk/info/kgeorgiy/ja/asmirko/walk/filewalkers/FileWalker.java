@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.Iterator;
+import java.util.List;
 
 public class FileWalker {
 
@@ -29,26 +30,21 @@ public class FileWalker {
         if (Files.notExists(outputPath)) {
             Files.createFile(outputPath);
         }
-        Iterator<String> hashes = Files.lines(inputPath)
-                .map(Path::of)
-                .peek(Path::normalize)
-                .map(path -> {
-                    long hash = 0L;
-                    try {
-                        hash = hashSumAlgorithm.hashOfFile(path);
-                    } catch (IOException e) {
-                        if(log) e.printStackTrace();
-                    }
-                    return String.format("%016x %s", hash, path.toString());
-                }).iterator();
-        try (var out = Files.newBufferedWriter(outputPath, encoding, StandardOpenOption.WRITE)) {
-            while (hashes.hasNext()) {
-                out.write(hashes.next());
+        List<String> files = Files.readAllLines(inputPath, encoding);
+        try (var out = Files.newBufferedWriter(outputPath, encoding)) {
+            for (String file : files) {
+                var path = Paths.get(file);
+                long hash = 0L;
+                try {
+                    path.normalize();
+                    hash = hashSumAlgorithm.hashOfFile(path);
+                } catch (IOException e) {
+                    if (log) e.printStackTrace();
+                }
+                out.write(String.format("%016x %s", hash, path.toString()));
+                out.newLine();
             }
         }
     }
-
-    public void setLog(Boolean log){
-        this.log = log;
-    }
 }
+
