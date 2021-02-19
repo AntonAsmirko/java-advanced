@@ -2,6 +2,7 @@ package info.kgeorgiy.ja.asmirko.walk.filewalkers;
 
 import info.kgeorgiy.ja.asmirko.walk.hashsum.HashSumAlgorithm;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -31,20 +32,20 @@ public class FileWalker {
             Files.createFile(outputPath);
         }
         List<String> files = Files.readAllLines(inputPath, encoding);
-        try (var out = Files.newBufferedWriter(outputPath, encoding)) {
-            for (String file : files) {
+        BufferedWriter out = Files.newBufferedWriter(outputPath, encoding);
+        for (String file : files) {
+            long hash = 0L;
+            try {
                 var path = Paths.get(file);
-                long hash = 0L;
-                try {
-                    path.normalize();
-                    hash = hashSumAlgorithm.hashOfFile(path);
-                } catch (IOException e) {
-                    if (log) e.printStackTrace();
-                }
-                out.write(String.format("%016x %s", hash, path.toString()));
+                path.normalize();
+                hash = hashSumAlgorithm.hashOfFile(path);
+            } catch (IOException | InvalidPathException e) {
+                if (log) e.printStackTrace();
+            } finally {
+                out.write(String.format("%016x %s", hash, file));
                 out.newLine();
             }
         }
+        out.close();
     }
 }
-
