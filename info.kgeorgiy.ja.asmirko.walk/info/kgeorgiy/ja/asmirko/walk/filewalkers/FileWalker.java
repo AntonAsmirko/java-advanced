@@ -10,27 +10,14 @@ import java.nio.file.*;
 import java.util.Iterator;
 import java.util.List;
 
-public class FileWalker {
+public class FileWalker extends AbstractWalker {
 
-    private Path inputPath;
-    private Path outputPath;
-    private HashSumAlgorithm hashSumAlgorithm;
-    private Charset encoding = StandardCharsets.UTF_8;
-    private boolean log = false;
-
-    public FileWalker(Path inputPath, Path outputPath, HashSumAlgorithm hashSumAlgorithm) throws IllegalArgumentException {
-        if (Files.notExists(inputPath)) {
-            throw new IllegalArgumentException("Input file does not exist");
-        }
-        this.inputPath = inputPath;
-        this.outputPath = outputPath;
-        this.hashSumAlgorithm = hashSumAlgorithm;
+    public FileWalker(Path inputPath, Path outputPath, HashSumAlgorithm hashSumAlgorithm) throws IllegalArgumentException, IOException {
+        super(inputPath, outputPath, hashSumAlgorithm);
     }
 
+    @Override
     public void walk() throws IOException, InvalidPathException {
-        if (Files.notExists(outputPath)) {
-            Files.createFile(outputPath);
-        }
         List<String> files = Files.readAllLines(inputPath, encoding);
         BufferedWriter out = Files.newBufferedWriter(outputPath, encoding);
         for (String file : files) {
