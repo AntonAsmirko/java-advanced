@@ -2,9 +2,7 @@ package info.kgeorgiy.ja.asmirko.walk.filewalkers;
 
 import info.kgeorgiy.ja.asmirko.walk.hashsum.HashSumAlgorithm;
 
-import java.io.BufferedWriter;
-import java.io.Closeable;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -17,20 +15,22 @@ public class RecursiveWalker extends AbstractWalker {
 
     @Override
     public void walk() throws IOException, InvalidPathException {
-        RecursiveFileVisitor visitor = new RecursiveFileVisitor(hashSumAlgorithm);
+        BufferedReader in = Files.newBufferedReader(inputPath, encoding);
         BufferedWriter out = Files.newBufferedWriter(outputPath, encoding);
+        RecursiveFileVisitor visitor = new RecursiveFileVisitor(hashSumAlgorithm);
         visitor.setOut(out);
-        for (Iterator<String> it = Files.lines(inputPath, encoding).iterator(); it.hasNext(); ) {
-            String line = it.next();
+        String file;
+        while ((file = in.readLine()) != null) {
             try {
-                Path startPoint = Paths.get(line);
+                Path startPoint = Paths.get(file);
                 startPoint.normalize();
                 Files.walkFileTree(startPoint, visitor);
             } catch (IOException | InvalidPathException  e) {
-                out.write(String.format("%016x %s", 0L, line));
+                out.write(String.format("%016x %s", 0L, file));
                 out.newLine();
             }
         }
+        in.close();
         out.close();
         visitor.close();
     }

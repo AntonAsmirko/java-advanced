@@ -35,6 +35,7 @@ public class FileWalker extends AbstractWalker {
                 out.newLine();
             }
         }
+        in.close();
         out.close();
     }
 }
