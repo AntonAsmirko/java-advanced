@@ -8,7 +8,8 @@ public class CustomTester extends Tester {
 
     public static void main(String[] args) {
         new CustomTester()
-                .add("WalkTest", RecursiveWalkTest.class)
+                .add("WalkTest", WalkTest.class)
+                .add("RecWalkTest", RecursiveWalkTest.class)
                 .run(args);
     }
 }
