@@ -14,7 +14,6 @@ public abstract class AbstractWalker implements Walker {
     protected Path inputPath;
     protected Path outputPath;
     protected HashSumAlgorithm hashSumAlgorithm;
-    protected Charset encoding = StandardCharsets.UTF_8;
     protected boolean log = false;
 
     public AbstractWalker(Path inputPath, Path outputPath, HashSumAlgorithm hashSumAlgorithm) throws IllegalArgumentException, IOException {

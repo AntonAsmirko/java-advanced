@@ -15,8 +15,8 @@ public class RecursiveWalker extends AbstractWalker {
 
     @Override
     public void walk() throws IOException, InvalidPathException {
-        BufferedReader in = Files.newBufferedReader(inputPath, encoding);
-        BufferedWriter out = Files.newBufferedWriter(outputPath, encoding);
+        BufferedReader in = Files.newBufferedReader(inputPath);
+        BufferedWriter out = Files.newBufferedWriter(outputPath);
         RecursiveFileVisitor visitor = new RecursiveFileVisitor(hashSumAlgorithm);
         visitor.setOut(out);
         String file;

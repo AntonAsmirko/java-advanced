@@ -19,8 +19,8 @@ public class FileWalker extends AbstractWalker {
 
     @Override
     public void walk() throws IOException, InvalidPathException {
-        BufferedReader in = Files.newBufferedReader(inputPath, encoding);
-        BufferedWriter out = Files.newBufferedWriter(outputPath, encoding);
+        BufferedReader in = Files.newBufferedReader(inputPath);
+        BufferedWriter out = Files.newBufferedWriter(outputPath);
         String file;
         while ((file = in.readLine()) != null) {
             long hash = 0L;
