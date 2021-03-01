@@ -1,4 +1,4 @@
-# Тесты к курсу «Технологии Java»
+# :coffee: Тесты к курсу «Технологии Java» :coffee:
 
 [Условия домашних заданий](https://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
 
