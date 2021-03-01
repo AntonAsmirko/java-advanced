@@ -1,8 +1,7 @@
 module info.kgeorgiy.ja.asmirko.walk {
-    requires transitive info.kgeorgiy.java.advanced.walk;
     requires info.kgeorgiy.java.advanced.arrayset;
 
-    exports info.kgeorgiy.ja.asmirko.walk;
+    exports info.kgeorgiy.ja.asmirko.arrayset;
 
     opens info.kgeorgiy.ja.asmirko.walk to junit;
 }

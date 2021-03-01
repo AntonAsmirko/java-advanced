@@ -67,15 +67,18 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     @Override
     public SortedSet<T> subSet(T fromElement, T toElement) throws IllegalArgumentException {
-        if (comparator() != null && comparator().compare(fromElement, toElement) <= 0) {
+        if (comparator() != null && comparator().compare(fromElement, toElement) > 0) {
             throw new IllegalArgumentException();
         }
         LinkedList<T> sublist = new LinkedList<>();
         int startPos = find(fromElement);
-        ArraySetIterator<T> it = new ArraySetIterator<>(data, Math.max(startPos - 1, -1));
+        if (startPos < 0){
+            startPos = startPos * -1 - 1;
+        }
+        ArraySetIterator<T> it = new ArraySetIterator<>(data, startPos);
         while (it.hasNext()) {
             T item = it.next();
-            if (item.equals(toElement)) {
+            if (comparator() != null && comparator().compare(item, toElement) >= 0) {
                 break;
             }
             sublist.add(item);
@@ -85,8 +88,8 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     @Override
     public SortedSet<T> headSet(T toElement) {
-        if (isEmpty()) {
-            return new ArraySet<>();
+        if (isEmpty() || comparator().compare(toElement, data.get(0)) <= 0) {
+            return new ArraySet<>(comparator());
         }
         return subSet(data.get(0), toElement);
     }
@@ -94,11 +97,18 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
     @Override
     public SortedSet<T> tailSet(T fromElement) {
         if (isEmpty()) {
-            return new ArraySet<>();
+            return new ArraySet<>(comparator());
         }
         LinkedList<T> sublist = new LinkedList<>();
         int startPos = find(fromElement);
-        ArraySetIterator<T> it = new ArraySetIterator<>(data, Math.max(startPos - 1, -1));
+        if (startPos < 0){
+            startPos = startPos * -1 - 1;
+        }
+        ArraySetIterator<T> it = new ArraySetIterator<>(data, startPos);
+        T last = data.get(size() - 1);
+        if (comparator() != null && comparator().compare(last, fromElement) < 0){
+            return new  ArraySet<>(comparator);
+        }
         while (it.hasNext()) {
             sublist.add(it.next());
         }
@@ -127,7 +137,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         private int posBefore;
 
         public ArraySetIterator(ArrayList<T> data) {
-            this(data, -1);
+            this(data, 0);
         }
 
         private ArraySetIterator(ArrayList<T> data, int posBefore) {
@@ -137,13 +147,12 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
         @Override
         public boolean hasNext() {
-            return posBefore < data.size() - 1;
+            return posBefore < data.size();
         }
 
         @Override
         public T next() {
-            posBefore++;
-            return data.get(posBefore);
+            return data.get(posBefore++);
         }
     }
 }
