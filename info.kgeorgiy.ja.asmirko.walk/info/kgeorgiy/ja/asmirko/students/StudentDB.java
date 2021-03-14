@@ -5,19 +5,12 @@ import info.kgeorgiy.java.advanced.student.Student;
 import info.kgeorgiy.java.advanced.student.StudentQuery;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class StudentDB implements StudentQuery {
-
-    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
-
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
 
     private static <F, S> List<S> mapAndCollect(List<F> firstForm, Function<F, S> mapping) {
         return firstForm.stream()
@@ -43,9 +36,9 @@ public class StudentDB implements StudentQuery {
     @Override
     public List<String> getFullNames(List<Student> students) {
         return mapAndCollect(students, student ->
-                (new StringBuilder(student.getFirstName()))
-                        .append(" ")
-                        .append(student.getLastName()).toString());
+                student.getFirstName() +
+                        " " +
+                        student.getLastName());
     }
 
     @Override
@@ -62,8 +55,8 @@ public class StudentDB implements StudentQuery {
     public String getMaxStudentFirstName(List<Student> students) {
         return students
                 .stream()
-                .max(Comparator.comparingInt(Student::getId))
-                .orElseGet(() -> new Student(228, "его", "отчислили", GroupName.M3234))
+                .max(Comparator.naturalOrder())
+                .orElseThrow()
                 .getFirstName();
     }
 
@@ -71,7 +64,7 @@ public class StudentDB implements StudentQuery {
     public List<Student> sortStudentsById(Collection<Student> students) {
         return students
                 .stream()
-                .sorted(Comparator.comparingInt(Student::getId))
+                .sorted(Comparator.naturalOrder())
                 .collect(Collectors.toList());
     }
 
@@ -79,21 +72,9 @@ public class StudentDB implements StudentQuery {
     public List<Student> sortStudentsByName(Collection<Student> students) {
         return students
                 .stream()
-                .sorted((student1, student2) -> {
-                    int tmpRes = student1.getFirstName().compareTo(student2.getFirstName());
-                    if (tmpRes != 0) {
-                        return -tmpRes;
-                    } else {
-                        int tmpRes2 = -student1.getLastName().compareTo(student2.getLastName());
-                        if (tmpRes2 != 0)
-                            return tmpRes2;
-                        else if (student1.getId() > student2.getId()) {
-                            return 1;
-                        } else {
-                            return -1;
-                        }
-                    }
-                })
+                .sorted(Comparator.comparing(Student::getId))
+                .sorted(Comparator.comparing(Student::getLastName))
+                .sorted(Comparator.comparing(Student::getFirstName).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +83,7 @@ public class StudentDB implements StudentQuery {
         return students
                 .stream()
                 .filter(student -> student.getFirstName().equals(name))
-                .sorted(Student::compareTo)
+                .sorted(Comparator.naturalOrder())
                 .collect(Collectors.toList());
     }
 
