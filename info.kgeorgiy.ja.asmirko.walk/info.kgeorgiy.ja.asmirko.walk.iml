@@ -40,5 +40,6 @@
     <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.base" />
     <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.walk" exported="" />
     <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.arrayset" />
+    <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.student" exported="" />
   </component>
 </module>

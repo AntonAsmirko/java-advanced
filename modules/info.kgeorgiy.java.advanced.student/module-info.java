@@ -6,6 +6,7 @@
  */
 module info.kgeorgiy.java.advanced.student {
     requires transitive info.kgeorgiy.java.advanced.base;
+    requires junit;
 
     exports info.kgeorgiy.java.advanced.student;
 
