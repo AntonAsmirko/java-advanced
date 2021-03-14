@@ -37,8 +37,8 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.arrayset" exported="" />
     <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.base" />
     <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.walk" exported="" />
+    <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.arrayset" />
   </component>
 </module>

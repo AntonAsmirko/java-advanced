@@ -5,9 +5,10 @@
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
 module info.kgeorgiy.java.advanced.arrayset {
-    requires transitive quickcheck;
+    requires  quickcheck;
 
     requires transitive info.kgeorgiy.java.advanced.base;
+    requires  junit;
 
     exports info.kgeorgiy.java.advanced.arrayset;
 
