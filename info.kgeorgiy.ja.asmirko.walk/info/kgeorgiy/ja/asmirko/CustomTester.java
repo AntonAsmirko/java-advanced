@@ -2,6 +2,7 @@ package info.kgeorgiy.ja.asmirko;
 
 import info.kgeorgiy.ja.asmirko.arrayset.ArraySet;
 import info.kgeorgiy.java.advanced.arrayset.SortedSetTest;
+import info.kgeorgiy.java.advanced.student.StudentQueryTest;
 import info.kgeorgiy.java.advanced.walk.Tester;
 import info.kgeorgiy.java.advanced.walk.WalkTest;
 
@@ -14,6 +15,7 @@ public class CustomTester extends Tester {
         new CustomTester()
                 .add("Walk", WalkTest.class)
                 .add("SortedSet", SortedSetTest.class)
+                .add("StudentDB", StudentQueryTest.class)
                 .run(args);
     }
 }

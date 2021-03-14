@@ -5,6 +5,7 @@ module info.kgeorgiy.ja.asmirko.walk {
 
     exports info.kgeorgiy.ja.asmirko.arrayset;
     exports info.kgeorgiy.ja.asmirko.walk;
+    exports info.kgeorgiy.ja.asmirko.students;
 
     opens info.kgeorgiy.ja.asmirko.walk to junit;
 }
