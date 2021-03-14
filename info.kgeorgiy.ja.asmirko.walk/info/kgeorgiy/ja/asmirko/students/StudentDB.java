@@ -18,39 +18,34 @@ public class StudentDB implements StudentQuery {
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
+    private static <F,S> List<S> mapAndCollect(List<F> firstForm, Function<F,S> mapping){
+        return firstForm
+                .stream()
+                .map(mapping)
+                .collect(Collectors.toList());
+    }
+
     @Override
     public List<String> getFirstNames(List<Student> students) {
-        return students
-                .stream()
-                .map(Student::getFirstName)
-                .collect(Collectors.toList());
+        return mapAndCollect(students, Student::getFirstName);
     }
 
     @Override
     public List<String> getLastNames(List<Student> students) {
-        return students
-                .stream()
-                .map(Student::getLastName)
-                .collect(Collectors.toList());
+        return mapAndCollect(students, Student::getLastName);
     }
 
     @Override
     public List<GroupName> getGroups(List<Student> students) {
-        return students
-                .stream()
-                .map(Student::getGroup)
-                .collect(Collectors.toList());
+        return mapAndCollect(students, Student::getGroup);
     }
 
     @Override
     public List<String> getFullNames(List<Student> students) {
-        return students
-                .stream()
-                .map(student -> (new StringBuilder())
-                        .append(student.getFirstName())
-                        .append(" ")
-                        .append(student.getLastName()).toString())
-                .collect(Collectors.toList());
+        return mapAndCollect(students, student ->
+                (new StringBuilder(student.getFirstName()))
+                .append(" ")
+                .append(student.getLastName()).toString());
     }
 
     @Override
