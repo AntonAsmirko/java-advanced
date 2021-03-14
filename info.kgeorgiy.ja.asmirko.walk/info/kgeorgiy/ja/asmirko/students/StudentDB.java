@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class StudentDB implements StudentQuery {
 
@@ -18,9 +19,8 @@ public class StudentDB implements StudentQuery {
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
-    private static <F,S> List<S> mapAndCollect(List<F> firstForm, Function<F,S> mapping){
-        return firstForm
-                .stream()
+    private static <F, S> List<S> mapAndCollect(List<F> firstForm, Function<F, S> mapping) {
+        return firstForm.stream()
                 .map(mapping)
                 .collect(Collectors.toList());
     }
@@ -44,18 +44,18 @@ public class StudentDB implements StudentQuery {
     public List<String> getFullNames(List<Student> students) {
         return mapAndCollect(students, student ->
                 (new StringBuilder(student.getFirstName()))
-                .append(" ")
-                .append(student.getLastName()).toString());
+                        .append(" ")
+                        .append(student.getLastName()).toString());
     }
 
     @Override
     public Set<String> getDistinctFirstNames(List<Student> students) {
+        Function<Predicate<? super Student>, Stream<Student>> tmp = students.stream()::filter;
+
         return students
                 .stream()
-                .filter(distinctByKey(Student::getFirstName))
                 .map(Student::getFirstName)
-                .sorted(String::compareTo)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
@@ -87,7 +87,7 @@ public class StudentDB implements StudentQuery {
                         int tmpRes2 = -student1.getLastName().compareTo(student2.getLastName());
                         if (tmpRes2 != 0)
                             return tmpRes2;
-                        else if (student1.getId() > student2.getId()){
+                        else if (student1.getId() > student2.getId()) {
                             return 1;
                         } else {
                             return -1;
@@ -128,11 +128,7 @@ public class StudentDB implements StudentQuery {
         return students
                 .stream()
                 .filter(student -> student.getGroup().equals(group))
-                .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, (student1, student2) -> {
-                    if (student1.compareTo(student2) > 0)
-                        return student1;
-                    else
-                        return student2;
-                }));
+                .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, (student1, student2) ->
+                        student1.compareTo(student2) > 0 ? student1 : student2));
     }
 }
