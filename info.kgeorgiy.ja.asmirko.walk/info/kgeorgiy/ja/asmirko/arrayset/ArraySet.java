@@ -67,13 +67,18 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     @Override
     public SortedSet<T> subSet(T fromElement, T toElement) {
-        return subSet(fromElement, true, toElement, false);
+        return subSet(fromElement, true, toElement, false, true);
     }
 
     public SortedSet<T> subSet(T fromElement, Boolean fromInclusive,
-                               T toElement, Boolean toInclusive) throws IllegalArgumentException {
+                               T toElement, Boolean toInclusive, Boolean willBeExceptionThrown)
+            throws IllegalArgumentException {
         if (comparator() != null && comparator().compare(fromElement, toElement) > 0) {
-            throw new IllegalArgumentException();
+            if (!willBeExceptionThrown) {
+                return new ArraySet<T>(List.of(), this.comparator);
+            } else {
+                throw new IllegalArgumentException();
+            }
         }
         Pair<LinkedList<T>, ArraySetIterator<T>> arrAndIt = makeIteratorAndSublist(fromElement, fromInclusive);
         LinkedList<T> sublist = arrAndIt.first;
@@ -98,14 +103,14 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     @Override
     public SortedSet<T> headSet(T toElement) {
-        return headSet(toElement, false);
+        return headSet(toElement, false, true);
     }
 
-    public SortedSet<T> headSet(T toElement, Boolean toInclusive) {
-        if (isEmpty() || Objects.requireNonNull(comparator()).compare(toElement, data.get(0)) <= 0) {
+    public SortedSet<T> headSet(T toElement, Boolean toInclusive, Boolean willBeExceptionThrown) {
+        if (isEmpty() || Objects.requireNonNull(comparator()).compare(toElement, data.get(0)) <= 0 && !toInclusive) {
             return new ArraySet<>(comparator());
         }
-        return subSet(data.get(0), true, toElement, toInclusive);
+        return subSet(data.get(0), true, toElement, toInclusive, willBeExceptionThrown);
     }
 
     @Override

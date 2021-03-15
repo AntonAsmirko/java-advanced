@@ -1,7 +1,5 @@
 package info.kgeorgiy.ja.asmirko.arrayset;
 
-import info.kgeorgiy.java.advanced.arrayset.NavigableSetTest;
-
 import java.util.*;
 
 public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T> {
@@ -16,6 +14,10 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
 
     public NavigableArraySet(Collection<T> collection, Comparator<? super T> comparator) {
         super(collection, comparator);
+    }
+
+    public NavigableArraySet(Comparator<? super T> comparator) {
+        super(comparator);
     }
 
     @Override
@@ -107,13 +109,13 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
 
     @Override
     public NavigableSet<T> subSet(T fromElement, boolean fromInclusive, T toElement, boolean toInclusive) {
-        SortedSet<T> resToCast = super.subSet(fromElement, fromInclusive, toElement, toInclusive);
+        SortedSet<T> resToCast = super.subSet(fromElement, fromInclusive, toElement, toInclusive, false);
         return new NavigableArraySet<>(resToCast, resToCast.comparator());
     }
 
     @Override
     public NavigableSet<T> headSet(T toElement, boolean inclusive) {
-        SortedSet<T> resToCast = super.headSet(toElement, inclusive);
+        SortedSet<T> resToCast = super.headSet(toElement, inclusive, false);
         return new NavigableArraySet<>(resToCast, resToCast.comparator());
     }
 
