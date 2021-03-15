@@ -38,12 +38,12 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
         if (closestPos >= 0 && data.get(closestPos).equals(t)) {
             return t;
         }
-        if (closestPos == -1 || closestPos == 0) {
+        if (closestPos == -1) {
             return null;
-        } else if (closestPos > 0) {
-            return data.get(closestPos - 1);
+        } else if (closestPos >= 0) {
+            return data.get(closestPos);
         } else {
-            return data.get(Math.abs(closestPos));
+            return data.get(Math.abs(closestPos) - 2);
         }
     }
 
