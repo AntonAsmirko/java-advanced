@@ -22,56 +22,22 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
 
     @Override
     public T lower(T t) {
-        int closestPos = find(t);
-        if (closestPos == -1 || closestPos == 0) {
-            return null;
-        } else if (closestPos > 0) {
-            return data.get(closestPos - 1);
-        } else {
-            return data.get(Math.abs(closestPos) - 2);
-        }
+        return super.lower(t);
     }
 
     @Override
     public T floor(T t) {
-        int closestPos = find(t);
-        if (closestPos >= 0 && data.get(closestPos).equals(t)) {
-            return t;
-        }
-        if (closestPos == -1) {
-            return null;
-        } else if (closestPos >= 0) {
-            return data.get(closestPos);
-        } else {
-            return data.get(Math.abs(closestPos) - 2);
-        }
+        return super.floor(t);
     }
 
     @Override
     public T ceiling(T t) {
-        int closestPos = find(t);
-        if (closestPos >= 0 && data.get(closestPos).equals(t)) {
-            return t;
-        }
-        if (closestPos < -data.size()) {
-            return null;
-        } else if (closestPos >= 0) {
-            return data.get(closestPos);
-        } else {
-            return data.get(Math.abs(closestPos) - 1);
-        }
+        return super.ceiling(t);
     }
 
     @Override
     public T higher(T t) {
-        int closestPos = find(t);
-        if (closestPos < -data.size() || closestPos == data.size() - 1) {
-            return null;
-        } else if (closestPos >= 0) {
-            return data.get(closestPos + 1);
-        } else {
-            return data.get(Math.abs(closestPos) - 1);
-        }
+        return super.higher(t);
     }
 
     @Override
@@ -112,7 +78,7 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
         return new NavigableArraySet<>(resToCast, resToCast.comparator());
     }
 
-    private class DescendingIterator implements Iterator<T>{
+    private class DescendingIterator implements Iterator<T> {
 
         private int posAfter = data.size();
 

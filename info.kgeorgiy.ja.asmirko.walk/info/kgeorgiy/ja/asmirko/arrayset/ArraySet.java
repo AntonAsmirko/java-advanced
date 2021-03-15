@@ -31,6 +31,89 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         data = new ArrayList<>(set);
     }
 
+
+    private Pair<T, Integer> lowerInternal(T t) {
+        int closestPos = find(t);
+        if (closestPos == -1 || closestPos == 0) {
+            return null;
+        } else if (closestPos > 0) {
+            return new Pair<T, Integer>(data.get(closestPos - 1), closestPos - 1);
+        } else {
+            return new Pair<T, Integer>(data.get(Math.abs(closestPos) - 2), Math.abs(closestPos) - 2);
+        }
+    }
+
+    protected T lower(T t) {
+        Pair<T, Integer> result = lowerInternal(t);
+        if (result == null) {
+            return null;
+        }
+        return result.getFirst();
+    }
+
+    private Pair<T, Integer> floorInternal(T t) {
+        int closestPos = find(t);
+        if (closestPos >= 0 && data.get(closestPos).equals(t)) {
+            return new Pair<>(data.get(closestPos), closestPos);
+        }
+        if (closestPos == -1) {
+            return null;
+        } else if (closestPos >= 0) {
+            return new Pair<>(data.get(closestPos), closestPos);
+        } else {
+            return new Pair<>(data.get(Math.abs(closestPos) - 2), Math.abs(closestPos) - 2);
+        }
+    }
+
+    protected T floor(T t) {
+        Pair<T, Integer> result = floorInternal(t);
+        if (result == null) {
+            return null;
+        }
+        return result.getFirst();
+    }
+
+    private Pair<T, Integer> ceilingInternal(T t) {
+        int closestPos = find(t);
+        if (closestPos >= 0 && data.get(closestPos).equals(t)) {
+            return new Pair<>(data.get(closestPos), closestPos);
+        }
+        if (closestPos < -data.size()) {
+            return null;
+        } else if (closestPos >= 0) {
+            return new Pair<>(data.get(closestPos), closestPos);
+        } else {
+            return new Pair<>(data.get(Math.abs(closestPos) - 1), Math.abs(closestPos) - 1);
+        }
+    }
+
+    protected T ceiling(T t) {
+        Pair<T, Integer> result = ceilingInternal(t);
+        if (result == null) {
+            return null;
+        }
+        return result.getFirst();
+    }
+
+    private Pair<T, Integer> higherInternal(T t) {
+        int closestPos = find(t);
+        if (closestPos < -data.size() || closestPos == data.size() - 1) {
+            return null;
+        } else if (closestPos >= 0) {
+            return new Pair<>(data.get(closestPos + 1), closestPos + 1);
+        } else {
+            return new Pair<>(data.get(Math.abs(closestPos) - 1), Math.abs(closestPos) - 1);
+        }
+    }
+
+    protected T higher(T t) {
+        Pair<T, Integer> result = higherInternal(t);
+        if (result == null) {
+            return null;
+        }
+        return result.getFirst();
+    }
+
     @Override
     public boolean add(T e) {
         throw new UnsupportedOperationException();
@@ -75,30 +158,27 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
             throws IllegalArgumentException {
         if (comparator() != null && comparator().compare(fromElement, toElement) > 0) {
             if (!willBeExceptionThrown) {
-                return new ArraySet<T>(List.of(), this.comparator);
+                return new ArraySet<T>(this.comparator);
             } else {
                 throw new IllegalArgumentException();
             }
         }
-        Pair<LinkedList<T>, ArraySetIterator<T>> arrAndIt = makeIteratorAndSublist(fromElement, fromInclusive);
-        LinkedList<T> sublist = arrAndIt.first;
-        ArraySetIterator<T> it = arrAndIt.second;
-        while (it.hasNext()) {
-            T item = it.next();
-            if (comparator() != null) {
-                int cmpResult = comparator().compare(item, toElement);
-                if (cmpResult > 0) {
-                    break;
-                } else if (cmpResult == 0) {
-                    if (toInclusive) {
-                        sublist.add(item);
-                    }
-                    break;
-                }
-            }
-            sublist.add(item);
+        Pair<T, Integer> lBound, rBound;
+
+        if (fromInclusive) {
+            lBound = ceilingInternal(fromElement);
+        } else {
+            lBound = higherInternal(fromElement);
         }
-        return new ArraySet<>(sublist, comparator);
+        if (toInclusive) {
+            rBound = floorInternal(toElement);
+        } else {
+            rBound = lowerInternal(toElement);
+        }
+        if (lBound == null || rBound == null || lBound.second > rBound.second) {
+            return new ArraySet<>(comparator());
+        }
+        return new ArraySet<>(data.subList(lBound.second, rBound.second + 1), comparator());
     }
 
     @Override
@@ -188,13 +268,21 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         }
     }
 
-    private static class Pair<F, S> {
+    protected static class Pair<F, S> {
         private final F first;
         private final S second;
 
         public Pair(F first, S second) {
             this.first = first;
             this.second = second;
+        }
+
+        public F getFirst() {
+            return first;
+        }
+
+        public S getSecond() {
+            return second;
         }
     }
 }
