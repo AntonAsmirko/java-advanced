@@ -46,16 +46,16 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
 
     @Override
     public NavigableSet<T> subSet(T fromElement, boolean fromInclusive, T toElement, boolean toInclusive) {
-        return null;
+        return (NavigableSet<T>) super.subSet(fromElement, toElement);
     }
 
     @Override
     public NavigableSet<T> headSet(T toElement, boolean inclusive) {
-        return null;
+        return (NavigableSet<T>) super.headSet(toElement);
     }
 
     @Override
     public NavigableSet<T> tailSet(T fromElement, boolean inclusive) {
-        return null;
+        return (NavigableSet<T>) super.tailSet(fromElement);
     }
 }

@@ -70,12 +70,9 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         if (comparator() != null && comparator().compare(fromElement, toElement) > 0) {
             throw new IllegalArgumentException();
         }
-        LinkedList<T> sublist = new LinkedList<>();
-        int startPos = find(fromElement);
-        if (startPos < 0){
-            startPos = startPos * -1 - 1;
-        }
-        ArraySetIterator<T> it = new ArraySetIterator<>(data, startPos);
+        Pair<LinkedList<T>, ArraySetIterator<T>> arrAndIt = makeIteratorAndSublist(fromElement);
+        LinkedList<T> sublist = arrAndIt.first;
+        ArraySetIterator<T> it = arrAndIt.second;
         while (it.hasNext()) {
             T item = it.next();
             if (comparator() != null && comparator().compare(item, toElement) >= 0) {
@@ -88,7 +85,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     @Override
     public SortedSet<T> headSet(T toElement) {
-        if (isEmpty() || comparator().compare(toElement, data.get(0)) <= 0) {
+        if (isEmpty() || Objects.requireNonNull(comparator()).compare(toElement, data.get(0)) <= 0) {
             return new ArraySet<>(comparator());
         }
         return subSet(data.get(0), toElement);
@@ -99,12 +96,9 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         if (isEmpty()) {
             return new ArraySet<>(comparator());
         }
-        LinkedList<T> sublist = new LinkedList<>();
-        int startPos = find(fromElement);
-        if (startPos < 0){
-            startPos = startPos * -1 - 1;
-        }
-        ArraySetIterator<T> it = new ArraySetIterator<>(data, startPos);
+        Pair<LinkedList<T>, ArraySetIterator<T>> arrAndIt = makeIteratorAndSublist(fromElement);
+        LinkedList<T> sublist = arrAndIt.first;
+        ArraySetIterator<T> it = arrAndIt.second;
         T last = data.get(size() - 1);
         if (comparator() != null && comparator().compare(last, fromElement) < 0){
             return new  ArraySet<>(comparator);
@@ -113,6 +107,16 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
             sublist.add(it.next());
         }
         return new ArraySet<>(sublist, comparator);
+    }
+
+    private Pair<LinkedList<T>, ArraySetIterator<T>> makeIteratorAndSublist(T fromElement){
+        LinkedList<T> sublist = new LinkedList<>();
+        int startPos = find(fromElement);
+        if (startPos < 0){
+            startPos = startPos * -1 - 1;
+        }
+        ArraySetIterator<T> it = new ArraySetIterator<>(data, startPos);
+        return new Pair<>(sublist, it);
     }
 
     @Override
@@ -153,6 +157,16 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         @Override
         public T next() {
             return data.get(posBefore++);
+        }
+    }
+
+    private static class Pair<F, S>{
+        private final F first;
+        private final S second;
+
+        public Pair(F first, S second){
+            this.first = first;
+            this.second = second;
         }
     }
 }
