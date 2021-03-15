@@ -202,17 +202,19 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         if (isEmpty()) {
             return new ArraySet<>(comparator());
         }
-        Pair<LinkedList<T>, ArraySetIterator<T>> arrAndIt = makeIteratorAndSublist(fromElement, fromInclusive);
-        LinkedList<T> sublist = arrAndIt.first;
-        ArraySetIterator<T> it = arrAndIt.second;
-        T last = data.get(size() - 1);
-        if (comparator() != null && comparator().compare(last, fromElement) < 0) {
-            return new ArraySet<>(comparator);
+        Pair<T, Integer> lBound;
+
+        if (fromInclusive) {
+            lBound = ceilingInternal(fromElement);
+        } else {
+            lBound = higherInternal(fromElement);
         }
-        while (it.hasNext()) {
-            sublist.add(it.next());
+
+        if (lBound == null) {
+            return new ArraySet<>(comparator());
         }
-        return new ArraySet<>(sublist, comparator);
+
+        return new ArraySet<>(data.subList(lBound.second, data.size()), comparator());
     }
 
     private Pair<LinkedList<T>, ArraySetIterator<T>> makeIteratorAndSublist(T fromElement, Boolean fromInclusice) {
