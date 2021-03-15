@@ -28,7 +28,7 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
         } else if (closestPos > 0) {
             return data.get(closestPos - 1);
         } else {
-            return data.get(Math.abs(closestPos));
+            return data.get(Math.abs(closestPos) - 2);
         }
     }
 

@@ -14,14 +14,9 @@ import java.util.NavigableSet;
 
 public class CustomTester extends Tester {
     public static void main(String[] args) {
-        NavigableArraySet<Integer> navigable = new NavigableArraySet<>(List.of(-2029479006,
-                146719081,
-                224429096,
-                449365419,
-                1208036781,
-                1519891101
-        ), Comparator.naturalOrder());
-        var tmp = navigable.headSet(-2029479007);
+        NavigableArraySet<Integer> navigable = new NavigableArraySet<>(List.of(-759072671, 1642200940, -36850366, 1382247506, -1809700816, 284771413, 1155133328, -878217284), Comparator.naturalOrder());
+        var tmp = navigable.lower(-759072672);
+        //-759072671
         new CustomTester()
                 .add("Walk", WalkTest.class)
                 .add("SortedSet", SortedSetTest.class)
