@@ -1,9 +1,23 @@
 package info.kgeorgiy.ja.asmirko.arrayset;
 
-import java.util.Iterator;
-import java.util.NavigableSet;
+import info.kgeorgiy.java.advanced.arrayset.NavigableSetTest;
+
+import java.util.*;
 
 public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T> {
+
+    public NavigableArraySet() {
+        super();
+    }
+
+    public NavigableArraySet(Collection<T> collection) {
+        super(collection);
+    }
+
+    public NavigableArraySet(Collection<T> collection, Comparator<? super T> comparator) {
+        super(collection, comparator);
+    }
+
     @Override
     public T lower(T t) {
         int closestPos = find(t);
@@ -31,11 +45,20 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T ceiling(T t) {
         int closestPos = find(t);
-        if (closestPos >= 0 && data.get(closestPos).equals(t)) {
-            return t;
+        if (closestPos >= 0) {
+            T foundItem = data.get(closestPos);
+            if (comparator != null && comparator.compare(foundItem, t) == 0) {
+                return t;
+            } else {
+                Comparable<? super T> tCmp = (Comparable<? super T>) t;
+                if (tCmp.compareTo(foundItem) == 0) {
+                    return t;
+                }
+            }
         }
         if (closestPos == -data.size() || closestPos == data.size() - 1) {
             return null;
@@ -84,16 +107,19 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
 
     @Override
     public NavigableSet<T> subSet(T fromElement, boolean fromInclusive, T toElement, boolean toInclusive) {
-        return (NavigableSet<T>) super.subSet(fromElement, fromInclusive, toElement, toInclusive);
+        SortedSet<T> resToCast = super.subSet(fromElement, fromInclusive, toElement, toInclusive);
+        return new NavigableArraySet<>(resToCast, resToCast.comparator());
     }
 
     @Override
     public NavigableSet<T> headSet(T toElement, boolean inclusive) {
-        return (NavigableSet<T>) super.headSet(toElement, inclusive);
+        SortedSet<T> resToCast = super.headSet(toElement, inclusive);
+        return new NavigableArraySet<>(resToCast, resToCast.comparator());
     }
 
     @Override
     public NavigableSet<T> tailSet(T fromElement, boolean inclusive) {
-        return (NavigableSet<T>) super.tailSet(fromElement, inclusive);
+        SortedSet<T> resToCast = super.tailSet(fromElement, inclusive);
+        return new NavigableArraySet<>(resToCast, resToCast.comparator());
     }
 }
