@@ -76,26 +76,22 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
 
     @Override
     public T pollFirst() {
-        if (isEmpty())
-            return null;
-        return data.remove(0);
+        throw new UnsupportedOperationException("pollFirst operation is not supported");
     }
 
     @Override
     public T pollLast() {
-        if (isEmpty())
-            return null;
-        return data.remove(data.size() - 1);
+        throw new UnsupportedOperationException("pollLast operation is not supported");
     }
 
     @Override
     public NavigableSet<T> descendingSet() {
-        return null;
+        return new NavigableArraySet<>(data, comparator != null ? comparator.reversed() : null);
     }
 
     @Override
     public Iterator<T> descendingIterator() {
-        return null;
+        return new DescendingIterator();
     }
 
     @Override
@@ -114,5 +110,20 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
     public NavigableSet<T> tailSet(T fromElement, boolean inclusive) {
         SortedSet<T> resToCast = super.tailSet(fromElement, inclusive);
         return new NavigableArraySet<>(resToCast, resToCast.comparator());
+    }
+
+    private class DescendingIterator implements Iterator<T>{
+
+        private int posAfter = data.size();
+
+        @Override
+        public boolean hasNext() {
+            return posAfter != -1;
+        }
+
+        @Override
+        public T next() {
+            return data.get(--posAfter);
+        }
     }
 }
