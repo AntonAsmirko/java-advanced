@@ -4,8 +4,8 @@ import java.util.*;
 
 public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
-    private final ArrayList<T> data;
-    private final Comparator<? super T> comparator;
+    protected final ArrayList<T> data;
+    protected final Comparator<? super T> comparator;
 
     public ArraySet() {
         this(null, null);
@@ -37,7 +37,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private int find(Object e) {
+    protected int find(Object e) {
         return Collections.binarySearch(data, (T) e, comparator);
     }
 
@@ -48,7 +48,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     @Override
     public Iterator<T> iterator() {
-        return new ArraySetIterator<T>(this.data);
+        return new ArraySetIterator<>(this.data);
     }
 
     @Override
