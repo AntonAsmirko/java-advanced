@@ -74,12 +74,12 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
     @Override
     public T higher(T t) {
         int closestPos = find(t);
-        if (closestPos == -data.size() || closestPos == data.size() - 1) {
+        if (closestPos < -data.size() || closestPos == data.size() - 1) {
             return null;
-        } else if (closestPos > 0) {
+        } else if (closestPos >= 0) {
             return data.get(closestPos + 1);
         } else {
-            return data.get(Math.abs(closestPos));
+            return data.get(Math.abs(closestPos) - 1);
         }
     }
 
