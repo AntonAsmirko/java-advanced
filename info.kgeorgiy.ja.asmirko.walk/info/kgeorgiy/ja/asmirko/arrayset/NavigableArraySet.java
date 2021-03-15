@@ -47,27 +47,18 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public T ceiling(T t) {
         int closestPos = find(t);
-        if (closestPos >= 0) {
-            T foundItem = data.get(closestPos);
-            if (comparator != null && comparator.compare(foundItem, t) == 0) {
-                return t;
-            } else {
-                Comparable<? super T> tCmp = (Comparable<? super T>) t;
-                if (tCmp.compareTo(foundItem) == 0) {
-                    return t;
-                }
-            }
+        if (closestPos >= 0 && data.get(closestPos).equals(t)) {
+            return t;
         }
-        if (closestPos == -data.size() || closestPos == data.size() - 1) {
+        if (closestPos < -data.size()) {
             return null;
-        } else if (closestPos > 0) {
-            return data.get(closestPos + 1);
+        } else if (closestPos >= 0) {
+            return data.get(closestPos);
         } else {
-            return data.get(Math.abs(closestPos));
+            return data.get(Math.abs(closestPos) - 1);
         }
     }
 
