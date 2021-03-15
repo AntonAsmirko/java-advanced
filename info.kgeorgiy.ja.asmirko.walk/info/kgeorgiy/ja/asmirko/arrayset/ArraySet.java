@@ -4,7 +4,8 @@ import java.util.*;
 
 public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
-    protected final ArrayList<T> data;
+    protected final T[] data;
+    protected final int l, r;
     protected final Comparator<? super T> comparator;
 
     public ArraySet() {
@@ -19,6 +20,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         this(null, comparator);
     }
 
+    @SuppressWarnings("unchecked")
     public ArraySet(Collection<T> collection, Comparator<? super T> comparator) {
         this.comparator = comparator;
         TreeSet<T> set;
@@ -28,18 +30,26 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         } else {
             set = new TreeSet<>();
         }
-        data = new ArrayList<>(set);
+        data = (T[])(new ArrayList<>(set)).toArray();
+        this.l = 0;
+        this.r = collection != null ? collection.size() : 0;
     }
 
+    protected ArraySet(T[] array, Comparator<? super T> comparator, int l, int r){
+        this.data = array;
+        this.l = l;
+        this.r = r;
+        this.comparator = comparator;
+    }
 
     private Pair<T, Integer> lowerInternal(T t) {
         int closestPos = find(t);
         if (closestPos == -1 || closestPos == 0) {
             return null;
         } else if (closestPos > 0) {
-            return new Pair<T, Integer>(data.get(closestPos - 1), closestPos - 1);
+            return new Pair<T, Integer>(data[l + closestPos - 1], closestPos - 1);
         } else {
-            return new Pair<T, Integer>(data.get(Math.abs(closestPos) - 2), Math.abs(closestPos) - 2);
+            return new Pair<T, Integer>(data[l + Math.abs(closestPos) - 2], Math.abs(closestPos) - 2);
         }
     }
 
@@ -53,15 +63,15 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     private Pair<T, Integer> floorInternal(T t) {
         int closestPos = find(t);
-        if (closestPos >= 0 && data.get(closestPos).equals(t)) {
-            return new Pair<>(data.get(closestPos), closestPos);
+        if (closestPos >= 0 && data[l + closestPos].equals(t)) {
+            return new Pair<>(data[l + closestPos], closestPos);
         }
         if (closestPos == -1) {
             return null;
         } else if (closestPos >= 0) {
-            return new Pair<>(data.get(closestPos), closestPos);
+            return new Pair<>(data[l + closestPos], closestPos);
         } else {
-            return new Pair<>(data.get(Math.abs(closestPos) - 2), Math.abs(closestPos) - 2);
+            return new Pair<>(data[l + Math.abs(closestPos) - 2], Math.abs(closestPos) - 2);
         }
     }
 
@@ -73,17 +83,19 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         return result.getFirst();
     }
 
+    private int segmentLength(){ return this.r - this.l; }
+
     private Pair<T, Integer> ceilingInternal(T t) {
         int closestPos = find(t);
-        if (closestPos >= 0 && data.get(closestPos).equals(t)) {
-            return new Pair<>(data.get(closestPos), closestPos);
+        if (closestPos >= 0 && data[l + closestPos].equals(t)) {
+            return new Pair<>(data[l + closestPos], closestPos);
         }
-        if (closestPos < -data.size()) {
+        if (closestPos < -segmentLength()) {
             return null;
         } else if (closestPos >= 0) {
-            return new Pair<>(data.get(closestPos), closestPos);
+            return new Pair<>(data[l + closestPos], closestPos);
         } else {
-            return new Pair<>(data.get(Math.abs(closestPos) - 1), Math.abs(closestPos) - 1);
+            return new Pair<>(data[l + Math.abs(closestPos) - 1], Math.abs(closestPos) - 1);
         }
     }
 
@@ -97,12 +109,12 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     private Pair<T, Integer> higherInternal(T t) {
         int closestPos = find(t);
-        if (closestPos < -data.size() || closestPos == data.size() - 1) {
+        if (closestPos < -segmentLength() || closestPos == segmentLength() - 1) {
             return null;
         } else if (closestPos >= 0) {
-            return new Pair<>(data.get(closestPos + 1), closestPos + 1);
+            return new Pair<>(data[l + closestPos + 1], closestPos + 1);
         } else {
-            return new Pair<>(data.get(Math.abs(closestPos) - 1), Math.abs(closestPos) - 1);
+            return new Pair<>(data[l + Math.abs(closestPos) - 1], Math.abs(closestPos) - 1);
         }
     }
 
@@ -121,7 +133,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     @SuppressWarnings("unchecked")
     protected int find(Object e) {
-        return Collections.binarySearch(data, (T) e, comparator);
+        return Arrays.binarySearch(data, l, r, (T) e, comparator);
     }
 
     @Override
@@ -131,12 +143,12 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
 
     @Override
     public Iterator<T> iterator() {
-        return new ArraySetIterator<>(this.data);
+        return new ArraySetIterator<T>(this.data, this.l, this.r);
     }
 
     @Override
     public int size() {
-        return data.size();
+        return segmentLength();
     }
 
     public boolean isEmpty() {
@@ -158,7 +170,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
             throws IllegalArgumentException {
         if (comparator() != null && comparator().compare(fromElement, toElement) > 0) {
             if (!willBeExceptionThrown) {
-                return new ArraySet<T>(this.comparator);
+                return new ArraySet<T>(comparator());
             } else {
                 throw new IllegalArgumentException();
             }
@@ -178,7 +190,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         if (lBound == null || rBound == null || lBound.second > rBound.second) {
             return new ArraySet<>(comparator());
         }
-        return new ArraySet<>(data.subList(lBound.second, rBound.second + 1), comparator());
+        return new ArraySet<>(data, comparator(), lBound.second, rBound.second);
     }
 
     @Override
@@ -187,10 +199,10 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
     }
 
     public SortedSet<T> headSet(T toElement, Boolean toInclusive, Boolean willBeExceptionThrown) {
-        if (isEmpty() || Objects.requireNonNull(comparator()).compare(toElement, data.get(0)) <= 0 && !toInclusive) {
+        if (isEmpty() || Objects.requireNonNull(comparator()).compare(toElement, data[l]) <= 0 && !toInclusive) {
             return new ArraySet<>(comparator());
         }
-        return subSet(data.get(0), true, toElement, toInclusive, willBeExceptionThrown);
+        return subSet(data[l], true, toElement, toInclusive, willBeExceptionThrown);
     }
 
     @Override
@@ -214,19 +226,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
             return new ArraySet<>(comparator());
         }
 
-        return new ArraySet<>(data.subList(lBound.second, data.size()), comparator());
-    }
-
-    private Pair<LinkedList<T>, ArraySetIterator<T>> makeIteratorAndSublist(T fromElement, Boolean fromInclusice) {
-        LinkedList<T> sublist = new LinkedList<>();
-        int startPos = find(fromElement);
-        if (startPos < 0) {
-            startPos = startPos * -1 - 1;
-        } else if (!fromInclusice) {
-            startPos = startPos + 1;
-        }
-        ArraySetIterator<T> it = new ArraySetIterator<>(data, startPos);
-        return new Pair<>(sublist, it);
+        return new ArraySet<>(data, comparator(), lBound.second, segmentLength());
     }
 
     @Override
@@ -234,7 +234,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         if (isEmpty()) {
             throw new NoSuchElementException();
         }
-        return data.get(0);
+        return data[l];
     }
 
     @Override
@@ -242,31 +242,29 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         if (isEmpty()) {
             throw new NoSuchElementException();
         }
-        return data.get(size() - 1);
+        return data[l + size() - 1];
     }
 
     private static class ArraySetIterator<T> implements Iterator<T> {
 
-        private final ArrayList<T> data;
+        private final T[] data;
         private int posBefore;
+        private final int r;
 
-        public ArraySetIterator(ArrayList<T> data) {
-            this(data, 0);
-        }
-
-        private ArraySetIterator(ArrayList<T> data, int posBefore) {
+        public ArraySetIterator(T[] data, int l, int r) {
             this.data = data;
-            this.posBefore = posBefore;
+            this.r = r;
+            this.posBefore = l;
         }
 
         @Override
         public boolean hasNext() {
-            return posBefore < data.size();
+            return posBefore < r;
         }
 
         @Override
         public T next() {
-            return data.get(posBefore++);
+            return data[posBefore++];
         }
     }
 

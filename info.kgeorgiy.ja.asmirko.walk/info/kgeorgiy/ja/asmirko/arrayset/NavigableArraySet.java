@@ -12,6 +12,10 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
         super(collection);
     }
 
+    public NavigableArraySet(T[] array, Comparator<? super T> comparator, int l, int r){
+        super(array, comparator, l, r);
+    }
+
     public NavigableArraySet(Collection<T> collection, Comparator<? super T> comparator) {
         super(collection, comparator);
     }
@@ -52,7 +56,7 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
 
     @Override
     public NavigableSet<T> descendingSet() {
-        return new NavigableArraySet<>(data, comparator != null ? comparator.reversed() : null);
+        return new NavigableArraySet<T>(data, comparator != null ? comparator().reversed() : null, this.l, this.r);
     }
 
     @Override
@@ -62,25 +66,25 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
 
     @Override
     public NavigableSet<T> subSet(T fromElement, boolean fromInclusive, T toElement, boolean toInclusive) {
-        SortedSet<T> resToCast = super.subSet(fromElement, fromInclusive, toElement, toInclusive, false);
-        return new NavigableArraySet<>(resToCast, resToCast.comparator());
+        ArraySet<T> resToCast = (ArraySet<T>) super.subSet(fromElement, fromInclusive, toElement, toInclusive, false);
+        return new NavigableArraySet<>(resToCast.data, resToCast.comparator(), resToCast.l, resToCast.r);
     }
 
     @Override
     public NavigableSet<T> headSet(T toElement, boolean inclusive) {
-        SortedSet<T> resToCast = super.headSet(toElement, inclusive, false);
-        return new NavigableArraySet<>(resToCast, resToCast.comparator());
+        ArraySet<T> resToCast = (ArraySet<T>)super.headSet(toElement, inclusive, false);
+        return new NavigableArraySet<>(resToCast.data, resToCast.comparator(), resToCast.l, resToCast.r);
     }
 
     @Override
     public NavigableSet<T> tailSet(T fromElement, boolean inclusive) {
-        SortedSet<T> resToCast = super.tailSet(fromElement, inclusive);
-        return new NavigableArraySet<>(resToCast, resToCast.comparator());
+        ArraySet<T> resToCast =(ArraySet<T>) super.tailSet(fromElement, inclusive);
+        return new NavigableArraySet<>(resToCast.data, resToCast.comparator(), resToCast.l, resToCast.r);
     }
 
     private class DescendingIterator implements Iterator<T> {
 
-        private int posAfter = data.size();
+        private int posAfter = data.length;
 
         @Override
         public boolean hasNext() {
@@ -89,7 +93,7 @@ public class NavigableArraySet<T> extends ArraySet<T> implements NavigableSet<T>
 
         @Override
         public T next() {
-            return data.get(--posAfter);
+            return data[--posAfter];
         }
     }
 }
