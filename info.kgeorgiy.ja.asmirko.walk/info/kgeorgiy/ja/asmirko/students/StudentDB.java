@@ -73,15 +73,15 @@ public class StudentDB implements StudentQuery {
     public List<Student> sortStudentsByName(Collection<Student> students) {
         return students.stream()
                 .sorted(Comparator.comparing(Student::getId))
-                .sorted(Comparator.comparing(Student::getLastName))
                 .sorted(Comparator.comparing(Student::getFirstName).reversed())
+                .sorted(Comparator.comparing(Student::getLastName).reversed())
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Student> findStudentsByFirstName(Collection<Student> students, String name) {
         return streamAndFilter(students, func(name, Student::getFirstName))
-                .sorted(Comparator.naturalOrder())
+                .sorted(Comparator.comparing(Student::getLastName).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -93,7 +93,8 @@ public class StudentDB implements StudentQuery {
     @Override
     public List<Student> findStudentsByGroup(Collection<Student> students, GroupName group) {
         return streamAndFilter(students, func(group, Student::getGroup))
-                .sorted(Comparator.comparingInt(Student::getId))
+                .sorted(Comparator.comparing(Student::getFirstName).reversed())
+                .sorted(Comparator.comparing(Student::getLastName).reversed())
                 .collect(Collectors.toList());
     }
 
