@@ -58,8 +58,8 @@ public class StudentDB implements StudentQuery {
     public String getMaxStudentFirstName(List<Student> students) {
         return students.stream()
                 .max(Comparator.naturalOrder())
-                .orElseThrow()
-                .getFirstName();
+                .map(Student::getFirstName)
+                .orElse("");
     }
 
     @Override
