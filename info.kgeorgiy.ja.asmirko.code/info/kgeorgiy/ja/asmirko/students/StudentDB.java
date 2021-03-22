@@ -5,6 +5,7 @@ import info.kgeorgiy.java.advanced.student.Student;
 import info.kgeorgiy.java.advanced.student.StudentQuery;
 
 import java.util.*;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -12,6 +13,10 @@ import java.util.stream.Stream;
 
 public class StudentDB implements StudentQuery {
 
+    private static final BinaryOperator<String> MAP_SELECTOR = (student1, student2)
+            -> student1.compareTo(student2) < 0 ? student1 : student2;
+    private static final Comparator<Student> FIRST_NAME_CMP = Comparator.comparing(Student::getFirstName).reversed();
+    private static final Comparator<Student> LAST_NAME_CMP = Comparator.comparing(Student::getLastName).reversed();
 
     private static <F, S> List<S> mapAndCollect(List<F> firstForm, Function<F, S> mapping) {
         return firstForm.stream()
@@ -73,15 +78,15 @@ public class StudentDB implements StudentQuery {
     public List<Student> sortStudentsByName(Collection<Student> students) {
         return students.stream()
                 .sorted(Comparator.comparing(Student::getId))
-                .sorted(Comparator.comparing(Student::getFirstName).reversed())
-                .sorted(Comparator.comparing(Student::getLastName).reversed())
+                .sorted(FIRST_NAME_CMP)
+                .sorted(LAST_NAME_CMP)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Student> findStudentsByFirstName(Collection<Student> students, String name) {
         return streamAndFilter(students, func(name, Student::getFirstName))
-                .sorted(Comparator.comparing(Student::getLastName).reversed())
+                .sorted(LAST_NAME_CMP)
                 .collect(Collectors.toList());
     }
 
@@ -93,15 +98,14 @@ public class StudentDB implements StudentQuery {
     @Override
     public List<Student> findStudentsByGroup(Collection<Student> students, GroupName group) {
         return streamAndFilter(students, func(group, Student::getGroup))
-                .sorted(Comparator.comparing(Student::getFirstName).reversed())
-                .sorted(Comparator.comparing(Student::getLastName).reversed())
+                .sorted(FIRST_NAME_CMP)
+                .sorted(LAST_NAME_CMP)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Map<String, String> findStudentNamesByGroup(Collection<Student> students, GroupName group) {
         return streamAndFilter(students, func(group, Student::getGroup))
-                .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, (student1, student2) ->
-                        student1.compareTo(student2) < 0 ? student1 : student2));
+                .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, MAP_SELECTOR));
     }
 }
