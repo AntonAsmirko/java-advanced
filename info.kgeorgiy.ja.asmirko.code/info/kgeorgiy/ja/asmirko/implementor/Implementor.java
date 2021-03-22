@@ -50,7 +50,7 @@ public class Implementor implements Impler {
     private static final String LONG_DEFAULT = "0";
     private static final String OBJ_DEFAULT = "null";
     private static final String CHAR_DEFAULT = "0";
-    private static final String FLOAT_DEFAULT = "0.0";
+    private static final String FLOAT_DEFAULT = "0.0f";
     private static final String DOUBLE_DEFAULT = "0.0";
 
     @Override
@@ -66,6 +66,9 @@ public class Implementor implements Impler {
                 .append(System.lineSeparator());
 
         int modifiers = token.getModifiers();
+        if(Modifier.isPrivate(modifiers)){
+            throw new ImplerException();
+        }
         if (Modifier.isPublic(modifiers)) {
             classCode
                     .append(PUBLIC_KEYWORD)
@@ -176,7 +179,9 @@ public class Implementor implements Impler {
                             .append(SPACE)
                             .append(FLOAT_DEFAULT);
                 } else if (returnType.getName().equals(char.class.getName())) {
-                    classCode.append(CHAR_DEFAULT);
+                    classCode
+                            .append(SPACE)
+                            .append(CHAR_DEFAULT);
                 } else {
                     classCode
                             .append(SPACE)
