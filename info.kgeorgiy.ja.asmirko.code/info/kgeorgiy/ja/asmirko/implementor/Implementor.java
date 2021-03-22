@@ -1,15 +1,17 @@
-package info.kgeorgiy.ja.asmirko.students;
+package info.kgeorgiy.ja.asmirko.implementor;
 
 import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class Implementor implements Impler {
     private static final String CLASS_KEYWORD = "class";
     private static final String IMPLEMENTS_KEYWORD = "implements";
     private static final String RETURN_KEYWORD = "return";
-    private static final String NULL_KEYWORD = "null";
+    private static final String PACKAGE_KEYWORD = "package";
 
     private static final String CLASS_SUFFIX = "Impl";
     private static final String ARG = "arg";
@@ -41,13 +43,23 @@ public class Implementor implements Impler {
     private static final String TAB = "    ";
     private static final String SPACE = " ";
 
+    private static final String BOOL_DEFAULT = "false";
+    private static final String INT_DEFAULT = "0";
+    private static final String SHORT_DEFAULT = "0";
+    private static final String BYTE_DEFAULT = "0";
+    private static final String LONG_DEFAULT = "0";
+    private static final String OBJ_DEFAULT = "null";
+
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
         StringBuilder classCode = new StringBuilder();
 
         String packageName = token.getPackageName();
         classCode
+                .append(PACKAGE_KEYWORD)
+                .append(SPACE)
                 .append(packageName)
+                .append(";")
                 .append(System.lineSeparator());
 
         int modifiers = token.getModifiers();
@@ -123,8 +135,10 @@ public class Implementor implements Impler {
                     .append(TAB)
                     .append(TAB)
                     .append(RETURN_KEYWORD)
-                    .append(SPACE)
-                    .append(NULL_KEYWORD)
+                    .append(SPACE);
+
+            classCode
+                    .append(";")
                     .append(System.lineSeparator());
 
             classCode
@@ -133,8 +147,15 @@ public class Implementor implements Impler {
                     .append(System.lineSeparator());
         }
         classCode.append("}");
+        Path path = getPath(root, token);
+        try {
+            Files.createDirectories(path.getParent());
+            Files.createFile(path);
+        } catch (IOException e) {
+
+        }
         try (BufferedWriter bw = Files.newBufferedWriter(
-                root,
+                path,
                 StandardCharsets.UTF_8,
                 StandardOpenOption.WRITE
         )) {
@@ -143,5 +164,10 @@ public class Implementor implements Impler {
             e.printStackTrace();
             System.out.println(e.getMessage());
         }
+    }
+
+    protected Path getPath(Path path, Class<?> token) {
+        return Paths
+                .get(path.toString(), token.getPackageName().replaceAll("\\.", "\\" + File.separator), token.getSimpleName() + "Impl." + "java");
     }
 }

@@ -7,6 +7,7 @@ module info.kgeorgiy.ja.asmirko.code {
     exports info.kgeorgiy.ja.asmirko.arrayset;
     exports info.kgeorgiy.ja.asmirko.walk;
     exports info.kgeorgiy.ja.asmirko.students;
+    exports info.kgeorgiy.ja.asmirko.implementor;
 
     opens info.kgeorgiy.ja.asmirko.walk to junit;
 }
