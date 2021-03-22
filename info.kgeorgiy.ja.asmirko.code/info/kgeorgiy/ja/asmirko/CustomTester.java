@@ -14,7 +14,6 @@ import java.util.List;
 
 public class CustomTester extends Tester {
     public static void main(String[] args) {
-        //-759072671
         new CustomTester()
                 .add("Walk", WalkTest.class)
                 .add("SortedSet", SortedSetTest.class)

@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class StudentDB implements StudentQuery {
+public class StudentsDB implements StudentQuery {
 
     private static final BinaryOperator<String> MAP_SELECTOR = (student1, student2)
             -> student1.compareTo(student2) < 0 ? student1 : student2;

@@ -49,6 +49,9 @@ public class Implementor implements Impler {
     private static final String BYTE_DEFAULT = "0";
     private static final String LONG_DEFAULT = "0";
     private static final String OBJ_DEFAULT = "null";
+    private static final String CHAR_DEFAULT = "0";
+    private static final String FLOAT_DEFAULT = "0.0";
+    private static final String DOUBLE_DEFAULT = "0.0";
 
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
@@ -73,6 +76,10 @@ public class Implementor implements Impler {
                 .append(SPACE);
 
         String className = token.getSimpleName();
+        String classNameCanonical = token.getCanonicalName();
+        if(token.isPrimitive()){
+            throw new ImplerException();
+        }
         classCode
                 .append(className)
                 .append(CLASS_SUFFIX)
@@ -81,7 +88,7 @@ public class Implementor implements Impler {
         classCode
                 .append(IMPLEMENTS_KEYWORD)
                 .append(SPACE)
-                .append(className)
+                .append(classNameCanonical)
                 .append(SPACE)
                 .append("{")
                 .append(System.lineSeparator())
@@ -103,8 +110,10 @@ public class Implementor implements Impler {
             }
 
             Class<?> returnType = m.getReturnType();
-            classCode.append(returnType
-                    .getCanonicalName())
+
+            classCode.append(
+                    returnType.isPrimitive() ? returnType.getName() : returnType.getCanonicalName()
+            )
                     .append(SPACE);
 
             String mName = m.getName();
@@ -134,14 +143,51 @@ public class Implementor implements Impler {
             classCode
                     .append(TAB)
                     .append(TAB)
-                    .append(RETURN_KEYWORD)
-                    .append(SPACE);
+                    .append(RETURN_KEYWORD);
+
+            if (!returnType.getName().equals(void.class.getName())) {
+
+                if (returnType.getName().equals(int.class.getName())) {
+                    classCode
+                            .append(SPACE)
+                            .append(INT_DEFAULT);
+                } else if (returnType.getName().equals(long.class.getName())) {
+                    classCode
+                            .append(SPACE)
+                            .append(LONG_DEFAULT);
+                } else if (returnType.getName().equals(short.class.getName())) {
+                    classCode
+                            .append(SPACE)
+                            .append(SHORT_DEFAULT);
+                } else if (returnType.getName().equals(byte.class.getName())) {
+                    classCode
+                            .append(SPACE)
+                            .append(BYTE_DEFAULT);
+                } else if (returnType.getName().equals(boolean.class.getName())) {
+                    classCode
+                            .append(SPACE)
+                            .append(BOOL_DEFAULT);
+                } else if (returnType.getName().equals(double.class.getName())) {
+                    classCode
+                            .append(SPACE)
+                            .append(DOUBLE_DEFAULT);
+                } else if (returnType.getName().equals(float.class.getName())) {
+                    classCode
+                            .append(SPACE)
+                            .append(FLOAT_DEFAULT);
+                } else if (returnType.getName().equals(char.class.getName())) {
+                    classCode.append(CHAR_DEFAULT);
+                } else {
+                    classCode
+                            .append(SPACE)
+                            .append(OBJ_DEFAULT);
+                }
+            }
+
+            classCode.append(";");
 
             classCode
-                    .append(";")
-                    .append(System.lineSeparator());
-
-            classCode
+                    .append(System.lineSeparator())
                     .append(TAB)
                     .append("}")
                     .append(System.lineSeparator());
