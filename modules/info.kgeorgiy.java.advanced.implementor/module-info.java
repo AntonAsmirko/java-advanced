@@ -13,6 +13,7 @@ module info.kgeorgiy.java.advanced.implementor {
     requires java.sql;
     requires java.sql.rowset;
     requires java.desktop;
+    requires junit;
 
     exports info.kgeorgiy.java.advanced.implementor;
 
