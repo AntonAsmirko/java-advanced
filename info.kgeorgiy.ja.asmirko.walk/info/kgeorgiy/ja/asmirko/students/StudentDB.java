@@ -102,6 +102,6 @@ public class StudentDB implements StudentQuery {
     public Map<String, String> findStudentNamesByGroup(Collection<Student> students, GroupName group) {
         return streamAndFilter(students, func(group, Student::getGroup))
                 .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, (student1, student2) ->
-                        student1.compareTo(student2) > 0 ? student1 : student2));
+                        student1.compareTo(student2) < 0 ? student1 : student2));
     }
 }
