@@ -92,7 +92,11 @@ public class StudentsDB implements StudentQuery {
 
     @Override
     public List<Student> findStudentsByLastName(Collection<Student> students, String name) {
-        return streamAndFilter(students, func(name, Student::getLastName)).collect(Collectors.toList());
+        return streamAndFilter(students, func(name, Student::getLastName))
+                .sorted(Comparator.comparing(Student::getId))
+                .sorted(FIRST_NAME_CMP)
+                .sorted(LAST_NAME_CMP)
+                .collect(Collectors.toList());
     }
 
     @Override
