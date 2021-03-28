@@ -6,7 +6,6 @@ import info.kgeorgiy.java.advanced.implementor.ImplerException;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,7 +27,7 @@ public class Implementor implements Impler {
     private static final String ARG = "arg";
     private static final String TAB = "    ";
     private static final String BOOL_DEFAULT = "false";
-    private static final String INT_DEFAULT = "0";
+    private static final String OTHER_PRIMITIVE_DEFAULT = "0";
     private static final String OBJ_DEFAULT = "null";
 
     @Override
@@ -93,7 +92,7 @@ public class Implementor implements Impler {
                     classCode.append(String.format(" %s",
                             returnType.getName().equals(boolean.class.getName()) ?
                                     BOOL_DEFAULT :
-                                    INT_DEFAULT));
+                                    OTHER_PRIMITIVE_DEFAULT));
                 } else {
                     classCode.append(String.format(" %s", OBJ_DEFAULT));
                 }
@@ -101,9 +100,13 @@ public class Implementor implements Impler {
             classCode.append(String.format(";%s%s}%s", System.lineSeparator(), TAB, System.lineSeparator()));
         });
 
-
         classCode.append("}");
-        Path path = getPath(root, token);
+        Path path = Paths
+                .get(root.toString(),
+                        token
+                                .getPackageName()
+                                .replaceAll("\\.", "\\" + File.separator),
+                        token.getSimpleName() + "Impl." + "java");
         try {
             Files.createDirectories(path.getParent());
             Files.createFile(path);
@@ -111,22 +114,15 @@ public class Implementor implements Impler {
                 IOException e) {
             throw new IllegalStateException(String.format("Internal error, can't create file to write class, internal exception message: %s", e.getMessage()));
         }
-        try (
-                BufferedWriter bw = Files.newBufferedWriter(
-                        path,
-                        StandardCharsets.UTF_8,
-                        StandardOpenOption.WRITE
-                )) {
+        try (BufferedWriter bw = Files.newBufferedWriter(
+                path,
+                StandardCharsets.UTF_8,
+                StandardOpenOption.WRITE
+        )) {
             bw.write(classCode.toString());
         } catch (
                 IOException e) {
             throw new IllegalStateException(String.format("Internal error, unable to create StringBuilder or perform writing operation, internal exception message: %s", e.getMessage()));
         }
-
-    }
-
-    protected Path getPath(Path path, Class<?> token) {
-        return Paths
-                .get(path.toString(), token.getPackageName().replaceAll("\\.", "\\" + File.separator), token.getSimpleName() + "Impl." + "java");
     }
 }

@@ -22,12 +22,6 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void commit(){
         return;
     }
-    public void acceptChanges(){
-        return;
-    }
-    public void acceptChanges(java.sql.Connection arg1){
-        return;
-    }
     public void restoreOriginal(){
         return;
     }
@@ -40,11 +34,23 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void undoUpdate(){
         return;
     }
+    public boolean columnUpdated(java.lang.String arg1){
+        return false;
+    }
     public boolean columnUpdated(int arg1){
         return false;
     }
-    public boolean columnUpdated(java.lang.String arg1){
-        return false;
+    public void populate(java.sql.ResultSet arg1, int arg2){
+        return;
+    }
+    public void populate(java.sql.ResultSet arg1){
+        return;
+    }
+    public void acceptChanges(java.sql.Connection arg1){
+        return;
+    }
+    public void acceptChanges(){
+        return;
     }
     public javax.sql.rowset.spi.SyncProvider getSyncProvider(){
         return null;
@@ -53,12 +59,6 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
         return;
     }
     public void setMetaData(javax.sql.RowSetMetaData arg1){
-        return;
-    }
-    public void populate(java.sql.ResultSet arg1, int arg2){
-        return;
-    }
-    public void populate(java.sql.ResultSet arg1){
         return;
     }
     public java.sql.ResultSet getOriginal(){
@@ -1039,14 +1039,14 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateNCharacterStream(int arg1, java.io.Reader arg2, long arg3){
         return;
     }
+    public boolean isClosed(){
+        return false;
+    }
     public boolean isFirst(){
         return false;
     }
     public java.sql.Statement getStatement(){
         return null;
-    }
-    public boolean isClosed(){
-        return false;
     }
     public java.lang.Object unwrap(java.lang.Class arg1){
         return null;
