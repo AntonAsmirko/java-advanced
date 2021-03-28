@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class StudentsDB implements StudentQuery {
+public class StudentDB implements StudentQuery {
 
     private static final BinaryOperator<String> MAP_SELECTOR = (student1, student2)
             -> student1.compareTo(student2) < 0 ? student1 : student2;
@@ -77,7 +77,7 @@ public class StudentsDB implements StudentQuery {
     @Override
     public List<Student> sortStudentsByName(Collection<Student> students) {
         return students.stream()
-                .sorted(Comparator.comparing(Student::getId))
+                .sorted(Comparator.naturalOrder())
                 .sorted(FIRST_NAME_CMP)
                 .sorted(LAST_NAME_CMP)
                 .collect(Collectors.toList());
