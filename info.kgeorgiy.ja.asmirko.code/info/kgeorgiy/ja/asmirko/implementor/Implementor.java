@@ -18,14 +18,6 @@ import java.util.Optional;
 public class Implementor implements Impler {
 
     private static final String PUBLIC_KEYWORD = "public";
-    private static final String PROTECTED_KEYWORD = "protected";
-    private static final String CLASS_KEYWORD = "class";
-    private static final String IMPLEMENTS_KEYWORD = "implements";
-    private static final String RETURN_KEYWORD = "return";
-    private static final String PACKAGE_KEYWORD = "package";
-    private static final String CLASS_SUFFIX = "Impl";
-    private static final String ARG = "arg";
-    private static final String TAB = "    ";
     private static final String BOOL_DEFAULT = "false";
     private static final String OTHER_PRIMITIVE_DEFAULT = "0";
     private static final String OBJ_DEFAULT = "null";
@@ -34,7 +26,7 @@ public class Implementor implements Impler {
     public void implement(Class<?> token, Path root) throws ImplerException {
         StringBuilder classCode = new StringBuilder();
 
-        classCode.append(String.format("%s %s; %s", PACKAGE_KEYWORD, Optional.of(token.getPackageName()).orElse(""), System.lineSeparator()));
+        classCode.append(String.format("%s %s; %s", "package", Optional.of(token.getPackageName()).orElse(""), System.lineSeparator()));
 
         int modifiers = token.getModifiers();
         if (Modifier.isPrivate(modifiers)) {
@@ -43,33 +35,32 @@ public class Implementor implements Impler {
         if (Modifier.isPublic(modifiers)) {
             classCode.append(String.format("%s ", PUBLIC_KEYWORD));
         }
-        classCode.append(String.format("%s ", CLASS_KEYWORD));
+        classCode.append(String.format("%s ", "class"));
 
         if (token.isPrimitive()) {
             throw new ImplerException();
         }
         classCode.append(
-                String
-                        .format(
-                                "%s%s %s %s {%s%s",
-                                token.getSimpleName(),
-                                CLASS_SUFFIX,
-                                IMPLEMENTS_KEYWORD,
-                                token.getCanonicalName(),
-                                System.lineSeparator(),
-                                System.lineSeparator()
-                        )
+                String.format(
+                        "%s%s %s %s {%s%s",
+                        token.getSimpleName(),
+                        "Impl",
+                        "implements",
+                        token.getCanonicalName(),
+                        System.lineSeparator(),
+                        System.lineSeparator()
+                )
         );
 
         Arrays.stream(token.getMethods()).forEach(m -> {
             int mModifiers = m.getModifiers();
-            classCode.append(TAB);
+            classCode.append("    ");
 
             if (Modifier.isPublic(mModifiers))
                 classCode.append(String.format("%s ", PUBLIC_KEYWORD));
 
             if (Modifier.isProtected(mModifiers))
-                classCode.append(String.format("%s ", PROTECTED_KEYWORD));
+                classCode.append(String.format("%s ", "protected"));
 
 
             Class<?> returnType = m.getReturnType();
@@ -80,12 +71,12 @@ public class Implementor implements Impler {
             classCode.append(String.format("%s(", m.getName()));
             Class<?>[] mParameterTypes = m.getParameterTypes();
             for (int i = 0; i < mParameterTypes.length; i++) {
-                classCode.append(String.format("%s %s%d", mParameterTypes[i].getCanonicalName(), ARG, i + 1));
+                classCode.append(String.format("%s %s%d", mParameterTypes[i].getCanonicalName(), "arg", i + 1));
 
                 if (i != mParameterTypes.length - 1)
                     classCode.append(", ");
             }
-            classCode.append(String.format("){%s%s%s%s", System.lineSeparator(), TAB, TAB, RETURN_KEYWORD));
+            classCode.append(String.format("){%s        %s", System.lineSeparator(), "return"));
             if (!returnType.getName().equals(void.class.getName())) {
 
                 if (returnType.isPrimitive()) {
@@ -97,7 +88,7 @@ public class Implementor implements Impler {
                     classCode.append(String.format(" %s", OBJ_DEFAULT));
                 }
             }
-            classCode.append(String.format(";%s%s}%s", System.lineSeparator(), TAB, System.lineSeparator()));
+            classCode.append(String.format(";%s    }%s", System.lineSeparator(), System.lineSeparator()));
         });
 
         classCode.append("}");
