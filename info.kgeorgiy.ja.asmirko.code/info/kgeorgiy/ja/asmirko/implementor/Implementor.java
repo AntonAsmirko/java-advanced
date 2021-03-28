@@ -16,19 +16,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 public class Implementor implements Impler {
-    /**
-     * Produces code implementing class or interface specified by provided <var>token</var>.
-     * <p>
-     * Generated class classes name should be same as classes name of the type token with <var>Impl</var> suffix
-     * added. Generated source code should be placed in the correct subdirectory of the specified
-     * <var>root</var> directory and have correct file name. For example, the implementation of the
-     * interface {@link List} should go to <var>$root/java/util/ListImpl.java</var>
-     *
-     * @param token type token to create implementation for.
-     * @param root  root directory.
-     * @throws ImplerException when implementation cannot be
-     * generated.
-     */
 
     private static final String PUBLIC_KEYWORD = "public";
     private static final String PROTECTED_KEYWORD = "protected";
@@ -58,66 +45,57 @@ public class Implementor implements Impler {
         StringBuilder classCode = new StringBuilder();
 
         String packageName = token.getPackageName();
-        classCode
-                .append(PACKAGE_KEYWORD)
-                .append(SPACE)
-                .append(packageName)
-                .append(";")
-                .append(System.lineSeparator());
+        classCode.append(String.format("%s %s; %s", PACKAGE_KEYWORD, packageName, System.lineSeparator()));
 
         int modifiers = token.getModifiers();
-        if(Modifier.isPrivate(modifiers)){
+        if (Modifier.isPrivate(modifiers)) {
             throw new ImplerException();
         }
         if (Modifier.isPublic(modifiers)) {
-            classCode
-                    .append(PUBLIC_KEYWORD)
-                    .append(SPACE);
+            classCode.append(String.format("%s ", PUBLIC_KEYWORD));
         }
-        classCode
-                .append(CLASS_KEYWORD)
-                .append(SPACE);
+        classCode.append(String.format("%s ", CLASS_KEYWORD));
 
         String className = token.getSimpleName();
         String classNameCanonical = token.getCanonicalName();
-        if(token.isPrimitive()){
+        if (token.isPrimitive()) {
             throw new ImplerException();
         }
-        classCode
-                .append(className)
-                .append(CLASS_SUFFIX)
-                .append(SPACE);
-
-        classCode
-                .append(IMPLEMENTS_KEYWORD)
-                .append(SPACE)
-                .append(classNameCanonical)
-                .append(SPACE)
-                .append("{")
-                .append(System.lineSeparator())
-                .append(System.lineSeparator());
+        classCode.append(
+                String
+                        .format(
+                                "%s%s %s %s {%s%s",
+                                className,
+                                CLASS_SUFFIX,
+                                IMPLEMENTS_KEYWORD,
+                                classNameCanonical,
+                                System.lineSeparator(),
+                                System.lineSeparator()
+                        )
+        );
 
         Method[] methods = token.getMethods();
         for (Method m : methods) {
             int mModifiers = m.getModifiers();
             classCode.append(TAB);
-            if (Modifier.isPublic(mModifiers)) {
-                classCode
-                        .append(PUBLIC_KEYWORD)
-                        .append(SPACE);
-            }
-            if (Modifier.isProtected(mModifiers)) {
-                classCode
-                        .append(PROTECTED_KEYWORD)
-                        .append(SPACE);
-            }
+
+            if (Modifier.isPublic(mModifiers))
+                classCode.append(String.format("%s ", PUBLIC_KEYWORD));
+
+            if (Modifier.isProtected(mModifiers))
+                classCode.append(String.format("%s ", PROTECTED_KEYWORD));
+
 
             Class<?> returnType = m.getReturnType();
 
             classCode.append(
-                    returnType.isPrimitive() ? returnType.getName() : returnType.getCanonicalName()
-            )
-                    .append(SPACE);
+                    String
+                            .format(
+                                    "%s ", returnType.isPrimitive() ?
+                                            returnType.getName() :
+                                            returnType.getCanonicalName()
+                            )
+            );
 
             String mName = m.getName();
             classCode
@@ -126,76 +104,27 @@ public class Implementor implements Impler {
 
             Class<?>[] mParameterTypes = m.getParameterTypes();
             for (int i = 0; i < mParameterTypes.length; i++) {
-                classCode
-                        .append(mParameterTypes[i].getCanonicalName())
-                        .append(SPACE)
-                        .append(ARG)
-                        .append(i + 1);
-                if (i != mParameterTypes.length - 1) {
-                    classCode
-                            .append(",")
-                            .append(SPACE);
-                }
+                classCode.append(String.format("%s %s%d", mParameterTypes[i].getCanonicalName(), ARG, i + 1));
+
+                if (i != mParameterTypes.length - 1)
+                    classCode.append(", ");
             }
 
-            classCode
-                    .append(")")
-                    .append("{")
-                    .append(System.lineSeparator());
-
-            classCode
-                    .append(TAB)
-                    .append(TAB)
-                    .append(RETURN_KEYWORD);
+            classCode.append(String.format("){%s%s%s%s", System.lineSeparator(), TAB, TAB, RETURN_KEYWORD));
 
             if (!returnType.getName().equals(void.class.getName())) {
 
-                if (returnType.getName().equals(int.class.getName())) {
-                    classCode
-                            .append(SPACE)
-                            .append(INT_DEFAULT);
-                } else if (returnType.getName().equals(long.class.getName())) {
-                    classCode
-                            .append(SPACE)
-                            .append(LONG_DEFAULT);
-                } else if (returnType.getName().equals(short.class.getName())) {
-                    classCode
-                            .append(SPACE)
-                            .append(SHORT_DEFAULT);
-                } else if (returnType.getName().equals(byte.class.getName())) {
-                    classCode
-                            .append(SPACE)
-                            .append(BYTE_DEFAULT);
-                } else if (returnType.getName().equals(boolean.class.getName())) {
-                    classCode
-                            .append(SPACE)
-                            .append(BOOL_DEFAULT);
-                } else if (returnType.getName().equals(double.class.getName())) {
-                    classCode
-                            .append(SPACE)
-                            .append(DOUBLE_DEFAULT);
-                } else if (returnType.getName().equals(float.class.getName())) {
-                    classCode
-                            .append(SPACE)
-                            .append(FLOAT_DEFAULT);
-                } else if (returnType.getName().equals(char.class.getName())) {
-                    classCode
-                            .append(SPACE)
-                            .append(CHAR_DEFAULT);
+                if (returnType.isPrimitive()) {
+                    classCode.append(String.format(" %s",
+                            returnType.getName().equals(boolean.class.getName()) ?
+                                    BOOL_DEFAULT :
+                                    INT_DEFAULT));
                 } else {
-                    classCode
-                            .append(SPACE)
-                            .append(OBJ_DEFAULT);
+                    classCode.append(String.format(" %s", OBJ_DEFAULT));
                 }
             }
 
-            classCode.append(";");
-
-            classCode
-                    .append(System.lineSeparator())
-                    .append(TAB)
-                    .append("}")
-                    .append(System.lineSeparator());
+            classCode.append(String.format(";%s%s}%s", System.lineSeparator(), TAB, System.lineSeparator()));
         }
         classCode.append("}");
         Path path = getPath(root, token);
