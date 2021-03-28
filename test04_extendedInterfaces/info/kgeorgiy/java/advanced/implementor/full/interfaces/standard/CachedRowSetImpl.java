@@ -22,16 +22,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void commit(){
         return;
     }
-    public void populate(java.sql.ResultSet arg1){
-        return;
-    }
-    public void populate(java.sql.ResultSet arg1, int arg2){
+    public void acceptChanges(){
         return;
     }
     public void acceptChanges(java.sql.Connection arg1){
-        return;
-    }
-    public void acceptChanges(){
         return;
     }
     public void restoreOriginal(){
@@ -59,6 +53,12 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
         return;
     }
     public void setMetaData(javax.sql.RowSetMetaData arg1){
+        return;
+    }
+    public void populate(java.sql.ResultSet arg1, int arg2){
+        return;
+    }
+    public void populate(java.sql.ResultSet arg1){
         return;
     }
     public java.sql.ResultSet getOriginal(){
@@ -1039,13 +1039,13 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateNCharacterStream(int arg1, java.io.Reader arg2, long arg3){
         return;
     }
-    public boolean isClosed(){
+    public boolean isFirst(){
         return false;
     }
     public java.sql.Statement getStatement(){
         return null;
     }
-    public boolean isFirst(){
+    public boolean isClosed(){
         return false;
     }
     public java.lang.Object unwrap(java.lang.Class arg1){

@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class Implementor implements Impler {
@@ -61,7 +62,7 @@ public class Implementor implements Impler {
                         )
         );
 
-        for (Method m : token.getMethods()) {
+        Arrays.stream(token.getMethods()).forEach(m -> {
             int mModifiers = m.getModifiers();
             classCode.append(TAB);
 
@@ -73,18 +74,11 @@ public class Implementor implements Impler {
 
 
             Class<?> returnType = m.getReturnType();
-
-            classCode.append(
-                    String
-                            .format(
-                                    "%s ", returnType.isPrimitive() ?
-                                            returnType.getName() :
-                                            returnType.getCanonicalName()
-                            )
+            classCode.append(String.format("%s ", returnType.isPrimitive() ?
+                    returnType.getName() :
+                    returnType.getCanonicalName())
             );
-
             classCode.append(String.format("%s(", m.getName()));
-
             Class<?>[] mParameterTypes = m.getParameterTypes();
             for (int i = 0; i < mParameterTypes.length; i++) {
                 classCode.append(String.format("%s %s%d", mParameterTypes[i].getCanonicalName(), ARG, i + 1));
@@ -92,9 +86,7 @@ public class Implementor implements Impler {
                 if (i != mParameterTypes.length - 1)
                     classCode.append(", ");
             }
-
             classCode.append(String.format("){%s%s%s%s", System.lineSeparator(), TAB, TAB, RETURN_KEYWORD));
-
             if (!returnType.getName().equals(void.class.getName())) {
 
                 if (returnType.isPrimitive()) {
@@ -106,26 +98,31 @@ public class Implementor implements Impler {
                     classCode.append(String.format(" %s", OBJ_DEFAULT));
                 }
             }
-
             classCode.append(String.format(";%s%s}%s", System.lineSeparator(), TAB, System.lineSeparator()));
-        }
+        });
+
+
         classCode.append("}");
         Path path = getPath(root, token);
         try {
             Files.createDirectories(path.getParent());
             Files.createFile(path);
-        } catch (IOException e) {
+        } catch (
+                IOException e) {
             throw new IllegalStateException(String.format("Internal error, can't create file to write class, internal exception message: %s", e.getMessage()));
         }
-        try (BufferedWriter bw = Files.newBufferedWriter(
-                path,
-                StandardCharsets.UTF_8,
-                StandardOpenOption.WRITE
-        )) {
+        try (
+                BufferedWriter bw = Files.newBufferedWriter(
+                        path,
+                        StandardCharsets.UTF_8,
+                        StandardOpenOption.WRITE
+                )) {
             bw.write(classCode.toString());
-        } catch (IOException e) {
+        } catch (
+                IOException e) {
             throw new IllegalStateException(String.format("Internal error, unable to create StringBuilder or perform writing operation, internal exception message: %s", e.getMessage()));
         }
+
     }
 
     protected Path getPath(Path path, Class<?> token) {
