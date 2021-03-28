@@ -10,6 +10,10 @@ public class Tester extends BaseTester {
         new Tester()
                 .add("interface", InterfaceImplementorTest.class)
                 .add("class", ClassImplementorTest.class)
+                .add("advanced", AdvancedImplementorTest.class)
+                .add("covariant", CovariantImplementorTest.class)
+                .add("jar-interface", InterfaceJarImplementorTest.class)
+                .add("jar-class", ClassJarImplementorTest.class)
                 .run(args);
     }
 }
