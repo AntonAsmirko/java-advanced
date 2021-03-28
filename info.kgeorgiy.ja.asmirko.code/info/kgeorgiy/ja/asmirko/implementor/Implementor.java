@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.List;
+import java.util.Optional;
 
 public class Implementor implements Impler {
 
@@ -23,29 +23,18 @@ public class Implementor implements Impler {
     private static final String IMPLEMENTS_KEYWORD = "implements";
     private static final String RETURN_KEYWORD = "return";
     private static final String PACKAGE_KEYWORD = "package";
-
     private static final String CLASS_SUFFIX = "Impl";
     private static final String ARG = "arg";
-
     private static final String TAB = "    ";
-    private static final String SPACE = " ";
-
     private static final String BOOL_DEFAULT = "false";
     private static final String INT_DEFAULT = "0";
-    private static final String SHORT_DEFAULT = "0";
-    private static final String BYTE_DEFAULT = "0";
-    private static final String LONG_DEFAULT = "0";
     private static final String OBJ_DEFAULT = "null";
-    private static final String CHAR_DEFAULT = "0";
-    private static final String FLOAT_DEFAULT = "0.0f";
-    private static final String DOUBLE_DEFAULT = "0.0";
 
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
         StringBuilder classCode = new StringBuilder();
 
-        String packageName = token.getPackageName();
-        classCode.append(String.format("%s %s; %s", PACKAGE_KEYWORD, packageName, System.lineSeparator()));
+        classCode.append(String.format("%s %s; %s", PACKAGE_KEYWORD, Optional.of(token.getPackageName()).orElse(""), System.lineSeparator()));
 
         int modifiers = token.getModifiers();
         if (Modifier.isPrivate(modifiers)) {
@@ -56,8 +45,6 @@ public class Implementor implements Impler {
         }
         classCode.append(String.format("%s ", CLASS_KEYWORD));
 
-        String className = token.getSimpleName();
-        String classNameCanonical = token.getCanonicalName();
         if (token.isPrimitive()) {
             throw new ImplerException();
         }
@@ -65,17 +52,16 @@ public class Implementor implements Impler {
                 String
                         .format(
                                 "%s%s %s %s {%s%s",
-                                className,
+                                token.getSimpleName(),
                                 CLASS_SUFFIX,
                                 IMPLEMENTS_KEYWORD,
-                                classNameCanonical,
+                                token.getCanonicalName(),
                                 System.lineSeparator(),
                                 System.lineSeparator()
                         )
         );
 
-        Method[] methods = token.getMethods();
-        for (Method m : methods) {
+        for (Method m : token.getMethods()) {
             int mModifiers = m.getModifiers();
             classCode.append(TAB);
 
@@ -97,10 +83,7 @@ public class Implementor implements Impler {
                             )
             );
 
-            String mName = m.getName();
-            classCode
-                    .append(mName)
-                    .append("(");
+            classCode.append(String.format("%s(", m.getName()));
 
             Class<?>[] mParameterTypes = m.getParameterTypes();
             for (int i = 0; i < mParameterTypes.length; i++) {
@@ -132,7 +115,7 @@ public class Implementor implements Impler {
             Files.createDirectories(path.getParent());
             Files.createFile(path);
         } catch (IOException e) {
-
+            throw new IllegalStateException(String.format("Internal error, can't create file to write class, internal exception message: %s", e.getMessage()));
         }
         try (BufferedWriter bw = Files.newBufferedWriter(
                 path,
@@ -141,8 +124,7 @@ public class Implementor implements Impler {
         )) {
             bw.write(classCode.toString());
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            throw new IllegalStateException(String.format("Internal error, unable to create StringBuilder or perform writing operation, internal exception message: %s", e.getMessage()));
         }
     }
 
