@@ -1,21 +1,24 @@
 package info.kgeorgiy.ja.asmirko.implementor;
 
-import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
+import info.kgeorgiy.java.advanced.implementor.JarImpler;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
-import java.nio.charset.StandardCharsets;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.jar.JarOutputStream;
+import java.util.zip.ZipEntry;
+import javax.tools.*;
 
-public class Implementor implements Impler {
+public class Implementor implements JarImpler {
 
     private static final String PUBLIC_KEYWORD = "public";
     private static final String BOOL_DEFAULT = "false";
@@ -100,20 +103,58 @@ public class Implementor implements Impler {
                         token.getSimpleName() + "Impl." + "java");
         try {
             Files.createDirectories(path.getParent());
-            Files.createFile(path);
+            //Files.createFile(path);
         } catch (
                 IOException e) {
-            throw new IllegalStateException(String.format("Internal error, can't create file to write class, internal exception message: %s", e.getMessage()));
+            e.printStackTrace();
+            throw new ImplerException(String.format("Internal error, can't create file to write class, internal exception message: %s", e.getMessage()));
         }
         try (BufferedWriter bw = Files.newBufferedWriter(
-                path,
-                StandardCharsets.UTF_8,
-                StandardOpenOption.WRITE
+                path
         )) {
             bw.write(classCode.toString());
         } catch (
                 IOException e) {
-            throw new IllegalStateException(String.format("Internal error, unable to create StringBuilder or perform writing operation, internal exception message: %s", e.getMessage()));
+            e.printStackTrace();
+            throw new ImplerException(String.format("Internal error, unable to create StringBuilder or perform writing operation, internal exception message: %s", e.getMessage()));
+        }
+    }
+
+    private Path getPathToSomeShit(Path jarFile, Class<?> token, String fileExtension) {
+        return Paths
+                .get(jarFile.toString(),
+                        token
+                                .getPackageName()
+                                .replaceAll("\\.", "\\" + File.separator),
+                        token.getSimpleName() + "Impl." + fileExtension);
+    }
+
+    @Override
+    public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
+        Path dir = jarFile.getParent();
+        implement(token, dir);
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        try {
+            if (compiler.run(null, null, null, "-cp", Path.of(token.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
+                    getPathToSomeShit(jarFile, token, "java").toString()) == 0) {
+                try (
+                        var jOS = new JarOutputStream(
+                                Files.newOutputStream(
+                                        jarFile,
+                                        StandardOpenOption.WRITE
+                                )
+                        )
+                ) {
+                    jOS.putNextEntry(new ZipEntry(getPathToSomeShit(Path.of(""), token, "class").toString()));
+                    Files.copy(getPathToSomeShit(jarFile, token, "class"), jOS);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                throw new ImplerException();
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
         }
     }
 }

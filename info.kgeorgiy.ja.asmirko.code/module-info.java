@@ -3,6 +3,7 @@ module info.kgeorgiy.ja.asmirko.code {
     requires info.kgeorgiy.java.advanced.walk;
     requires info.kgeorgiy.java.advanced.student;
     requires info.kgeorgiy.java.advanced.implementor;
+    requires java.compiler;
 
     exports info.kgeorgiy.ja.asmirko.arrayset;
     exports info.kgeorgiy.ja.asmirko.walk;
