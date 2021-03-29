@@ -11,19 +11,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Easy-version interface
- * for <a href="https://www.kgeorgiy.info/courses/java-advanced/homeworks.html#homework-student">Student</a> homework
- * of <a href="https://www.kgeorgiy.info/courses/java-advanced/">Java Advanced</a> course.
- * <p>
- * <em>Students ordered by name</em>:
- * students ordered by {@link Student#getLastName() last name} in descending order
- * students with equal last names are ordered by {@link Student#getFirstName() first name} in descending order,
- * students having equal both last and first names are ordered by {@link Student#getId() id} in ascending order.
- *
- * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
- */
-
 public class StudentDB implements StudentQuery {
 
     private static final BinaryOperator<String> MAP_SELECTOR = (student1, student2)
