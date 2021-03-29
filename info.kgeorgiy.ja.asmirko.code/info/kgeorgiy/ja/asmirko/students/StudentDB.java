@@ -11,12 +11,28 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Easy-version interface
+ * for <a href="https://www.kgeorgiy.info/courses/java-advanced/homeworks.html#homework-student">Student</a> homework
+ * of <a href="https://www.kgeorgiy.info/courses/java-advanced/">Java Advanced</a> course.
+ * <p>
+ * <em>Students ordered by name</em>:
+ * students ordered by {@link Student#getLastName() last name} in descending order
+ * students with equal last names are ordered by {@link Student#getFirstName() first name} in descending order,
+ * students having equal both last and first names are ordered by {@link Student#getId() id} in ascending order.
+ *
+ * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
+ */
+
 public class StudentDB implements StudentQuery {
 
     private static final BinaryOperator<String> MAP_SELECTOR = (student1, student2)
             -> student1.compareTo(student2) < 0 ? student1 : student2;
     private static final Comparator<Student> FIRST_NAME_CMP = Comparator.comparing(Student::getFirstName).reversed();
     private static final Comparator<Student> LAST_NAME_CMP = Comparator.comparing(Student::getLastName).reversed();
+    private static final Comparator<Student> FULL_CMP = LAST_NAME_CMP
+            .thenComparing(FIRST_NAME_CMP)
+            .thenComparing(Comparator.naturalOrder());
 
     private static <F, S> List<S> mapAndCollect(List<F> firstForm, Function<F, S> mapping) {
         return firstForm.stream()
@@ -49,7 +65,7 @@ public class StudentDB implements StudentQuery {
 
     @Override
     public List<String> getFullNames(List<Student> students) {
-        return mapAndCollect(students, student -> student.getFirstName() + " " + student.getLastName());
+        return mapAndCollect(students, student -> String.format("%s %s", student.getFirstName(), student.getLastName()));
     }
 
     @Override
@@ -77,9 +93,7 @@ public class StudentDB implements StudentQuery {
     @Override
     public List<Student> sortStudentsByName(Collection<Student> students) {
         return students.stream()
-                .sorted(Comparator.naturalOrder())
-                .sorted(FIRST_NAME_CMP)
-                .sorted(LAST_NAME_CMP)
+                .sorted(FULL_CMP)
                 .collect(Collectors.toList());
     }
 
@@ -93,17 +107,14 @@ public class StudentDB implements StudentQuery {
     @Override
     public List<Student> findStudentsByLastName(Collection<Student> students, String name) {
         return streamAndFilter(students, func(name, Student::getLastName))
-                .sorted(Comparator.comparing(Student::getId))
-                .sorted(FIRST_NAME_CMP)
-                .sorted(LAST_NAME_CMP)
+                .sorted(FULL_CMP)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Student> findStudentsByGroup(Collection<Student> students, GroupName group) {
         return streamAndFilter(students, func(group, Student::getGroup))
-                .sorted(FIRST_NAME_CMP)
-                .sorted(LAST_NAME_CMP)
+                .sorted(FULL_CMP)
                 .collect(Collectors.toList());
     }
 
