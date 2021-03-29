@@ -142,10 +142,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setByte(java.lang.String arg1, byte arg2){
         return;
     }
-    public void setShort(java.lang.String arg1, short arg2){
+    public void setShort(int arg1, short arg2){
         return;
     }
-    public void setShort(int arg1, short arg2){
+    public void setShort(java.lang.String arg1, short arg2){
         return;
     }
     public void setInt(java.lang.String arg1, int arg2){
@@ -154,22 +154,22 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setInt(int arg1, int arg2){
         return;
     }
-    public void setLong(int arg1, long arg2){
-        return;
-    }
     public void setLong(java.lang.String arg1, long arg2){
         return;
     }
-    public void setFloat(java.lang.String arg1, float arg2){
+    public void setLong(int arg1, long arg2){
         return;
     }
     public void setFloat(int arg1, float arg2){
         return;
     }
-    public void setDouble(java.lang.String arg1, double arg2){
+    public void setFloat(java.lang.String arg1, float arg2){
         return;
     }
     public void setDouble(int arg1, double arg2){
+        return;
+    }
+    public void setDouble(java.lang.String arg1, double arg2){
         return;
     }
     public boolean isReadOnly(){
@@ -181,10 +181,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setArray(int arg1, java.sql.Array arg2){
         return;
     }
-    public void setTime(java.lang.String arg1, java.sql.Time arg2, java.util.Calendar arg3){
+    public void setTime(int arg1, java.sql.Time arg2, java.util.Calendar arg3){
         return;
     }
-    public void setTime(int arg1, java.sql.Time arg2, java.util.Calendar arg3){
+    public void setTime(java.lang.String arg1, java.sql.Time arg2, java.util.Calendar arg3){
         return;
     }
     public void setTime(java.lang.String arg1, java.sql.Time arg2){
@@ -193,16 +193,22 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setTime(int arg1, java.sql.Time arg2){
         return;
     }
-    public void setDate(java.lang.String arg1, java.sql.Date arg2){
+    public void setDate(int arg1, java.sql.Date arg2){
+        return;
+    }
+    public void setDate(java.lang.String arg1, java.sql.Date arg2, java.util.Calendar arg3){
         return;
     }
     public void setDate(int arg1, java.sql.Date arg2, java.util.Calendar arg3){
         return;
     }
-    public void setDate(int arg1, java.sql.Date arg2){
+    public void setDate(java.lang.String arg1, java.sql.Date arg2){
         return;
     }
-    public void setDate(java.lang.String arg1, java.sql.Date arg2, java.util.Calendar arg3){
+    public java.lang.String getPassword(){
+        return null;
+    }
+    public void setType(int arg1){
         return;
     }
     public java.lang.String getUrl(){
@@ -274,25 +280,25 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setNull(java.lang.String arg1, int arg2){
         return;
     }
-    public void setNull(java.lang.String arg1, int arg2, java.lang.String arg3){
+    public void setNull(int arg1, int arg2, java.lang.String arg3){
         return;
     }
     public void setNull(int arg1, int arg2){
         return;
     }
-    public void setNull(int arg1, int arg2, java.lang.String arg3){
-        return;
-    }
-    public void setBigDecimal(java.lang.String arg1, java.math.BigDecimal arg2){
+    public void setNull(java.lang.String arg1, int arg2, java.lang.String arg3){
         return;
     }
     public void setBigDecimal(int arg1, java.math.BigDecimal arg2){
         return;
     }
-    public void setString(int arg1, java.lang.String arg2){
+    public void setBigDecimal(java.lang.String arg1, java.math.BigDecimal arg2){
         return;
     }
     public void setString(java.lang.String arg1, java.lang.String arg2){
+        return;
+    }
+    public void setString(int arg1, java.lang.String arg2){
         return;
     }
     public void setBytes(int arg1, byte[] arg2){
@@ -301,16 +307,19 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setBytes(java.lang.String arg1, byte[] arg2){
         return;
     }
-    public void setTimestamp(java.lang.String arg1, java.sql.Timestamp arg2){
+    public void setTimestamp(java.lang.String arg1, java.sql.Timestamp arg2, java.util.Calendar arg3){
         return;
     }
     public void setTimestamp(int arg1, java.sql.Timestamp arg2){
         return;
     }
-    public void setTimestamp(java.lang.String arg1, java.sql.Timestamp arg2, java.util.Calendar arg3){
+    public void setTimestamp(java.lang.String arg1, java.sql.Timestamp arg2){
         return;
     }
     public void setTimestamp(int arg1, java.sql.Timestamp arg2, java.util.Calendar arg3){
+        return;
+    }
+    public void setAsciiStream(int arg1, java.io.InputStream arg2, int arg3){
         return;
     }
     public void setAsciiStream(java.lang.String arg1, java.io.InputStream arg2, int arg3){
@@ -320,9 +329,6 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
         return;
     }
     public void setAsciiStream(java.lang.String arg1, java.io.InputStream arg2){
-        return;
-    }
-    public void setAsciiStream(int arg1, java.io.InputStream arg2, int arg3){
         return;
     }
     public void setBinaryStream(java.lang.String arg1, java.io.InputStream arg2, int arg3){
@@ -361,7 +367,7 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setNCharacterStream(int arg1, java.io.Reader arg2, long arg3){
         return;
     }
-    public void setObject(java.lang.String arg1, java.lang.Object arg2){
+    public void setObject(int arg1, java.lang.Object arg2, int arg3, int arg4){
         return;
     }
     public void setObject(java.lang.String arg1, java.lang.Object arg2, int arg3, int arg4){
@@ -370,10 +376,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setObject(int arg1, java.lang.Object arg2){
         return;
     }
-    public void setObject(int arg1, java.lang.Object arg2, int arg3, int arg4){
+    public void setObject(java.lang.String arg1, java.lang.Object arg2, int arg3){
         return;
     }
-    public void setObject(java.lang.String arg1, java.lang.Object arg2, int arg3){
+    public void setObject(java.lang.String arg1, java.lang.Object arg2){
         return;
     }
     public void setObject(int arg1, java.lang.Object arg2, int arg3){
@@ -382,10 +388,13 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setRef(int arg1, java.sql.Ref arg2){
         return;
     }
-    public void setBlob(java.lang.String arg1, java.io.InputStream arg2, long arg3){
+    public void setBlob(java.lang.String arg1, java.io.InputStream arg2){
         return;
     }
     public void setBlob(java.lang.String arg1, java.sql.Blob arg2){
+        return;
+    }
+    public void setBlob(java.lang.String arg1, java.io.InputStream arg2, long arg3){
         return;
     }
     public void setBlob(int arg1, java.io.InputStream arg2){
@@ -397,7 +406,7 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setBlob(int arg1, java.sql.Blob arg2){
         return;
     }
-    public void setBlob(java.lang.String arg1, java.io.InputStream arg2){
+    public void setClob(java.lang.String arg1, java.io.Reader arg2){
         return;
     }
     public void setClob(int arg1, java.io.Reader arg2, long arg3){
@@ -406,16 +415,13 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setClob(java.lang.String arg1, java.io.Reader arg2, long arg3){
         return;
     }
-    public void setClob(java.lang.String arg1, java.io.Reader arg2){
-        return;
-    }
-    public void setClob(int arg1, java.io.Reader arg2){
-        return;
-    }
     public void setClob(java.lang.String arg1, java.sql.Clob arg2){
         return;
     }
     public void setClob(int arg1, java.sql.Clob arg2){
+        return;
+    }
+    public void setClob(int arg1, java.io.Reader arg2){
         return;
     }
     public void clearParameters(){
@@ -445,28 +451,22 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void setNString(int arg1, java.lang.String arg2){
         return;
     }
-    public void setNClob(int arg1, java.io.Reader arg2, long arg3){
-        return;
-    }
-    public void setNClob(java.lang.String arg1, java.io.Reader arg2){
-        return;
-    }
     public void setNClob(int arg1, java.sql.NClob arg2){
         return;
     }
     public void setNClob(int arg1, java.io.Reader arg2){
         return;
     }
-    public void setNClob(java.lang.String arg1, java.io.Reader arg2, long arg3){
-        return;
-    }
     public void setNClob(java.lang.String arg1, java.sql.NClob arg2){
         return;
     }
-    public java.lang.String getPassword(){
-        return null;
+    public void setNClob(int arg1, java.io.Reader arg2, long arg3){
+        return;
     }
-    public void setType(int arg1){
+    public void setNClob(java.lang.String arg1, java.io.Reader arg2){
+        return;
+    }
+    public void setNClob(java.lang.String arg1, java.io.Reader arg2, long arg3){
         return;
     }
     public void updateBytes(int arg1, byte[] arg2){
@@ -538,10 +538,13 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public int getType(){
         return 0;
     }
-    public java.lang.Object getObject(java.lang.String arg1, java.util.Map arg2){
+    public java.lang.Object getObject(int arg1){
         return null;
     }
-    public java.lang.Object getObject(java.lang.String arg1, java.lang.Class arg2){
+    public java.lang.Object getObject(java.lang.String arg1){
+        return null;
+    }
+    public java.lang.Object getObject(java.lang.String arg1, java.util.Map arg2){
         return null;
     }
     public java.lang.Object getObject(int arg1, java.util.Map arg2){
@@ -550,10 +553,7 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public java.lang.Object getObject(int arg1, java.lang.Class arg2){
         return null;
     }
-    public java.lang.Object getObject(java.lang.String arg1){
-        return null;
-    }
-    public java.lang.Object getObject(int arg1){
+    public java.lang.Object getObject(java.lang.String arg1, java.lang.Class arg2){
         return null;
     }
     public java.sql.Ref getRef(java.lang.String arg1){
@@ -574,19 +574,19 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public java.sql.Array getArray(java.lang.String arg1){
         return null;
     }
-    public java.sql.Time getTime(int arg1, java.util.Calendar arg2){
-        return null;
-    }
-    public java.sql.Time getTime(java.lang.String arg1, java.util.Calendar arg2){
-        return null;
-    }
     public java.sql.Time getTime(int arg1){
         return null;
     }
     public java.sql.Time getTime(java.lang.String arg1){
         return null;
     }
-    public java.sql.Timestamp getTimestamp(int arg1, java.util.Calendar arg2){
+    public java.sql.Time getTime(java.lang.String arg1, java.util.Calendar arg2){
+        return null;
+    }
+    public java.sql.Time getTime(int arg1, java.util.Calendar arg2){
+        return null;
+    }
+    public java.sql.Timestamp getTimestamp(java.lang.String arg1){
         return null;
     }
     public java.sql.Timestamp getTimestamp(int arg1){
@@ -595,53 +595,58 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public java.sql.Timestamp getTimestamp(java.lang.String arg1, java.util.Calendar arg2){
         return null;
     }
-    public java.sql.Timestamp getTimestamp(java.lang.String arg1){
-        return null;
-    }
-    public java.lang.String getString(java.lang.String arg1){
+    public java.sql.Timestamp getTimestamp(int arg1, java.util.Calendar arg2){
         return null;
     }
     public java.lang.String getString(int arg1){
         return null;
     }
-    public java.net.URL getURL(int arg1){
+    public java.lang.String getString(java.lang.String arg1){
         return null;
     }
     public java.net.URL getURL(java.lang.String arg1){
         return null;
     }
-    public void updateTime(int arg1, java.sql.Time arg2){
-        return;
+    public java.net.URL getURL(int arg1){
+        return null;
     }
     public void updateTime(java.lang.String arg1, java.sql.Time arg2){
+        return;
+    }
+    public void updateTime(int arg1, java.sql.Time arg2){
         return;
     }
     public boolean relative(int arg1){
         return false;
     }
+@java.lang.Deprecated
     public java.math.BigDecimal getBigDecimal(java.lang.String arg1, int arg2){
-        return null;
-    }
-    public java.math.BigDecimal getBigDecimal(java.lang.String arg1){
         return null;
     }
     public java.math.BigDecimal getBigDecimal(int arg1){
         return null;
     }
+    public java.math.BigDecimal getBigDecimal(java.lang.String arg1){
+        return null;
+    }
+@java.lang.Deprecated
     public java.math.BigDecimal getBigDecimal(int arg1, int arg2){
-        return null;
-    }
-    public java.sql.Date getDate(int arg1){
-        return null;
-    }
-    public java.sql.Date getDate(int arg1, java.util.Calendar arg2){
         return null;
     }
     public java.sql.Date getDate(java.lang.String arg1, java.util.Calendar arg2){
         return null;
     }
+    public java.sql.Date getDate(int arg1, java.util.Calendar arg2){
+        return null;
+    }
     public java.sql.Date getDate(java.lang.String arg1){
         return null;
+    }
+    public java.sql.Date getDate(int arg1){
+        return null;
+    }
+    public boolean isClosed(){
+        return false;
     }
     public boolean wasNull(){
         return false;
@@ -652,16 +657,18 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public java.io.InputStream getAsciiStream(java.lang.String arg1){
         return null;
     }
-    public java.io.InputStream getUnicodeStream(int arg1){
-        return null;
-    }
+@java.lang.Deprecated
     public java.io.InputStream getUnicodeStream(java.lang.String arg1){
         return null;
     }
-    public java.io.InputStream getBinaryStream(int arg1){
+@java.lang.Deprecated
+    public java.io.InputStream getUnicodeStream(int arg1){
         return null;
     }
     public java.io.InputStream getBinaryStream(java.lang.String arg1){
+        return null;
+    }
+    public java.io.InputStream getBinaryStream(int arg1){
         return null;
     }
     public java.sql.SQLWarning getWarnings(){
@@ -679,10 +686,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public int findColumn(java.lang.String arg1){
         return 0;
     }
-    public java.io.Reader getCharacterStream(int arg1){
+    public java.io.Reader getCharacterStream(java.lang.String arg1){
         return null;
     }
-    public java.io.Reader getCharacterStream(java.lang.String arg1){
+    public java.io.Reader getCharacterStream(int arg1){
         return null;
     }
     public boolean isBeforeFirst(){
@@ -733,16 +740,16 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateNull(java.lang.String arg1){
         return;
     }
-    public void updateBoolean(int arg1, boolean arg2){
-        return;
-    }
     public void updateBoolean(java.lang.String arg1, boolean arg2){
         return;
     }
-    public void updateByte(java.lang.String arg1, byte arg2){
+    public void updateBoolean(int arg1, boolean arg2){
         return;
     }
     public void updateByte(int arg1, byte arg2){
+        return;
+    }
+    public void updateByte(java.lang.String arg1, byte arg2){
         return;
     }
     public void updateShort(int arg1, short arg2){
@@ -757,16 +764,16 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateInt(java.lang.String arg1, int arg2){
         return;
     }
-    public void updateLong(int arg1, long arg2){
-        return;
-    }
     public void updateLong(java.lang.String arg1, long arg2){
         return;
     }
-    public void updateFloat(java.lang.String arg1, float arg2){
+    public void updateLong(int arg1, long arg2){
         return;
     }
     public void updateFloat(int arg1, float arg2){
+        return;
+    }
+    public void updateFloat(java.lang.String arg1, float arg2){
         return;
     }
     public void updateDouble(java.lang.String arg1, double arg2){
@@ -775,10 +782,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateDouble(int arg1, double arg2){
         return;
     }
-    public void updateBigDecimal(int arg1, java.math.BigDecimal arg2){
+    public void updateBigDecimal(java.lang.String arg1, java.math.BigDecimal arg2){
         return;
     }
-    public void updateBigDecimal(java.lang.String arg1, java.math.BigDecimal arg2){
+    public void updateBigDecimal(int arg1, java.math.BigDecimal arg2){
         return;
     }
     public void updateString(java.lang.String arg1, java.lang.String arg2){
@@ -787,10 +794,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateString(int arg1, java.lang.String arg2){
         return;
     }
-    public void updateDate(int arg1, java.sql.Date arg2){
+    public void updateDate(java.lang.String arg1, java.sql.Date arg2){
         return;
     }
-    public void updateDate(java.lang.String arg1, java.sql.Date arg2){
+    public void updateDate(int arg1, java.sql.Date arg2){
         return;
     }
     public void updateTimestamp(java.lang.String arg1, java.sql.Timestamp arg2){
@@ -799,16 +806,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateTimestamp(int arg1, java.sql.Timestamp arg2){
         return;
     }
-    public void updateAsciiStream(int arg1, java.io.InputStream arg2, long arg3){
-        return;
-    }
-    public void updateAsciiStream(java.lang.String arg1, java.io.InputStream arg2, long arg3){
-        return;
-    }
     public void updateAsciiStream(java.lang.String arg1, java.io.InputStream arg2, int arg3){
         return;
     }
-    public void updateAsciiStream(int arg1, java.io.InputStream arg2, int arg3){
+    public void updateAsciiStream(java.lang.String arg1, java.io.InputStream arg2, long arg3){
         return;
     }
     public void updateAsciiStream(java.lang.String arg1, java.io.InputStream arg2){
@@ -817,34 +818,34 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateAsciiStream(int arg1, java.io.InputStream arg2){
         return;
     }
-    public void updateBinaryStream(int arg1, java.io.InputStream arg2, int arg3){
+    public void updateAsciiStream(int arg1, java.io.InputStream arg2, long arg3){
         return;
     }
-    public void updateBinaryStream(java.lang.String arg1, java.io.InputStream arg2){
+    public void updateAsciiStream(int arg1, java.io.InputStream arg2, int arg3){
         return;
     }
     public void updateBinaryStream(int arg1, java.io.InputStream arg2, long arg3){
         return;
     }
-    public void updateBinaryStream(int arg1, java.io.InputStream arg2){
+    public void updateBinaryStream(java.lang.String arg1, java.io.InputStream arg2){
+        return;
+    }
+    public void updateBinaryStream(int arg1, java.io.InputStream arg2, int arg3){
         return;
     }
     public void updateBinaryStream(java.lang.String arg1, java.io.InputStream arg2, long arg3){
         return;
     }
+    public void updateBinaryStream(int arg1, java.io.InputStream arg2){
+        return;
+    }
     public void updateBinaryStream(java.lang.String arg1, java.io.InputStream arg2, int arg3){
         return;
     }
-    public void updateCharacterStream(java.lang.String arg1, java.io.Reader arg2, long arg3){
+    public void updateCharacterStream(int arg1, java.io.Reader arg2, int arg3){
         return;
     }
     public void updateCharacterStream(java.lang.String arg1, java.io.Reader arg2){
-        return;
-    }
-    public void updateCharacterStream(int arg1, java.io.Reader arg2){
-        return;
-    }
-    public void updateCharacterStream(int arg1, java.io.Reader arg2, int arg3){
         return;
     }
     public void updateCharacterStream(java.lang.String arg1, java.io.Reader arg2, int arg3){
@@ -853,13 +854,19 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateCharacterStream(int arg1, java.io.Reader arg2, long arg3){
         return;
     }
+    public void updateCharacterStream(java.lang.String arg1, java.io.Reader arg2, long arg3){
+        return;
+    }
+    public void updateCharacterStream(int arg1, java.io.Reader arg2){
+        return;
+    }
     public void updateObject(int arg1, java.lang.Object arg2, java.sql.SQLType arg3){
         return;
     }
-    public void updateObject(int arg1, java.lang.Object arg2, java.sql.SQLType arg3, int arg4){
+    public void updateObject(java.lang.String arg1, java.lang.Object arg2, java.sql.SQLType arg3, int arg4){
         return;
     }
-    public void updateObject(java.lang.String arg1, java.lang.Object arg2, java.sql.SQLType arg3, int arg4){
+    public void updateObject(int arg1, java.lang.Object arg2, java.sql.SQLType arg3, int arg4){
         return;
     }
     public void updateObject(java.lang.String arg1, java.lang.Object arg2, java.sql.SQLType arg3){
@@ -910,10 +917,22 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public java.sql.Clob getClob(int arg1){
         return null;
     }
+    public void updateRef(java.lang.String arg1, java.sql.Ref arg2){
+        return;
+    }
     public void updateRef(int arg1, java.sql.Ref arg2){
         return;
     }
-    public void updateRef(java.lang.String arg1, java.sql.Ref arg2){
+    public void updateBlob(java.lang.String arg1, java.io.InputStream arg2){
+        return;
+    }
+    public void updateBlob(java.lang.String arg1, java.sql.Blob arg2){
+        return;
+    }
+    public void updateBlob(int arg1, java.io.InputStream arg2, long arg3){
+        return;
+    }
+    public void updateBlob(java.lang.String arg1, java.io.InputStream arg2, long arg3){
         return;
     }
     public void updateBlob(int arg1, java.sql.Blob arg2){
@@ -922,34 +941,22 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateBlob(int arg1, java.io.InputStream arg2){
         return;
     }
-    public void updateBlob(java.lang.String arg1, java.io.InputStream arg2, long arg3){
-        return;
-    }
-    public void updateBlob(int arg1, java.io.InputStream arg2, long arg3){
-        return;
-    }
-    public void updateBlob(java.lang.String arg1, java.sql.Blob arg2){
-        return;
-    }
-    public void updateBlob(java.lang.String arg1, java.io.InputStream arg2){
+    public void updateClob(java.lang.String arg1, java.sql.Clob arg2){
         return;
     }
     public void updateClob(java.lang.String arg1, java.io.Reader arg2){
         return;
     }
+    public void updateClob(int arg1, java.io.Reader arg2){
+        return;
+    }
     public void updateClob(int arg1, java.sql.Clob arg2){
-        return;
-    }
-    public void updateClob(java.lang.String arg1, java.sql.Clob arg2){
-        return;
-    }
-    public void updateClob(int arg1, java.io.Reader arg2, long arg3){
         return;
     }
     public void updateClob(java.lang.String arg1, java.io.Reader arg2, long arg3){
         return;
     }
-    public void updateClob(int arg1, java.io.Reader arg2){
+    public void updateClob(int arg1, java.io.Reader arg2, long arg3){
         return;
     }
     public void updateArray(int arg1, java.sql.Array arg2){
@@ -958,10 +965,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateArray(java.lang.String arg1, java.sql.Array arg2){
         return;
     }
-    public java.sql.RowId getRowId(java.lang.String arg1){
+    public java.sql.RowId getRowId(int arg1){
         return null;
     }
-    public java.sql.RowId getRowId(int arg1){
+    public java.sql.RowId getRowId(java.lang.String arg1){
         return null;
     }
     public void updateRowId(int arg1, java.sql.RowId arg2){
@@ -973,10 +980,13 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public int getHoldability(){
         return 0;
     }
+    public void updateNString(int arg1, java.lang.String arg2){
+        return;
+    }
     public void updateNString(java.lang.String arg1, java.lang.String arg2){
         return;
     }
-    public void updateNString(int arg1, java.lang.String arg2){
+    public void updateNClob(java.lang.String arg1, java.io.Reader arg2){
         return;
     }
     public void updateNClob(int arg1, java.io.Reader arg2){
@@ -988,13 +998,10 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateNClob(int arg1, java.sql.NClob arg2){
         return;
     }
-    public void updateNClob(java.lang.String arg1, java.io.Reader arg2){
+    public void updateNClob(java.lang.String arg1, java.io.Reader arg2, long arg3){
         return;
     }
     public void updateNClob(int arg1, java.io.Reader arg2, long arg3){
-        return;
-    }
-    public void updateNClob(java.lang.String arg1, java.io.Reader arg2, long arg3){
         return;
     }
     public java.sql.NClob getNClob(java.lang.String arg1){
@@ -1003,29 +1010,32 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public java.sql.NClob getNClob(int arg1){
         return null;
     }
-    public java.sql.SQLXML getSQLXML(int arg1){
-        return null;
-    }
     public java.sql.SQLXML getSQLXML(java.lang.String arg1){
         return null;
     }
-    public void updateSQLXML(java.lang.String arg1, java.sql.SQLXML arg2){
-        return;
+    public java.sql.SQLXML getSQLXML(int arg1){
+        return null;
     }
     public void updateSQLXML(int arg1, java.sql.SQLXML arg2){
         return;
     }
+    public void updateSQLXML(java.lang.String arg1, java.sql.SQLXML arg2){
+        return;
+    }
+    public java.lang.String getNString(int arg1){
+        return null;
+    }
     public java.lang.String getNString(java.lang.String arg1){
         return null;
     }
-    public java.lang.String getNString(int arg1){
+    public java.io.Reader getNCharacterStream(java.lang.String arg1){
         return null;
     }
     public java.io.Reader getNCharacterStream(int arg1){
         return null;
     }
-    public java.io.Reader getNCharacterStream(java.lang.String arg1){
-        return null;
+    public void updateNCharacterStream(int arg1, java.io.Reader arg2){
+        return;
     }
     public void updateNCharacterStream(java.lang.String arg1, java.io.Reader arg2){
         return;
@@ -1033,20 +1043,14 @@ public class CachedRowSetImpl implements info.kgeorgiy.java.advanced.implementor
     public void updateNCharacterStream(java.lang.String arg1, java.io.Reader arg2, long arg3){
         return;
     }
-    public void updateNCharacterStream(int arg1, java.io.Reader arg2){
-        return;
-    }
     public void updateNCharacterStream(int arg1, java.io.Reader arg2, long arg3){
         return;
     }
-    public boolean isClosed(){
-        return false;
+    public java.sql.Statement getStatement(){
+        return null;
     }
     public boolean isFirst(){
         return false;
-    }
-    public java.sql.Statement getStatement(){
-        return null;
     }
     public java.lang.Object unwrap(java.lang.Class arg1){
         return null;

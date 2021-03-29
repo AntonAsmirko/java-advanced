@@ -15,25 +15,24 @@ import java.util.Optional;
 
 public class Implementor implements Impler {
 
-    private static final String PUBLIC_KEYWORD = "public";
-    private static final String BOOL_DEFAULT = "false";
-    private static final String OTHER_PRIMITIVE_DEFAULT = "0";
-    private static final String OBJ_DEFAULT = "null";
-
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
         StringBuilder classCode = new StringBuilder();
-        Optional.of(token.getPackageName()).ifPresent(s -> {
-            classCode.append(String.format("package %s; %s", Optional.of(token.getPackageName()).orElse(""), System.lineSeparator()));
-        });
+        Optional.of(token.getPackageName()).ifPresent(s ->
+                classCode
+                        .append(String
+                                .format(
+                                        "package %s; %s",
+                                        Optional.of(token.getPackageName()).orElse(""), System.lineSeparator()
+                                )));
         int modifiers = token.getModifiers();
         if (Modifier.isPrivate(modifiers)) {
             throw new ImplerException();
         }
         if (Modifier.isPublic(modifiers)) {
-            classCode.append(String.format("%s ", PUBLIC_KEYWORD));
+            classCode.append("public ");
         }
-        classCode.append(String.format("%s ", "class"));
+        classCode.append("class ");
 
         if (token.isPrimitive()) {
             throw new ImplerException();
@@ -51,13 +50,15 @@ public class Implementor implements Impler {
         );
 
         Arrays.stream(token.getMethods()).forEach(m -> {
-//            Arrays.stream(m.getAnnotations())
-//                    .forEach(annotation -> {});
+            Arrays.stream(m.getAnnotations())
+                    .forEach(annotation -> {
+                        classCode.append(String.format("@%s%s", annotation.annotationType().getName(), System.lineSeparator()));
+                    });
             int mModifiers = m.getModifiers();
             classCode.append("    ");
 
             if (Modifier.isPublic(mModifiers))
-                classCode.append(String.format("%s ", PUBLIC_KEYWORD));
+                classCode.append("public ");
 
             if (Modifier.isProtected(mModifiers))
                 classCode.append(String.format("%s ", "protected"));
@@ -78,27 +79,23 @@ public class Implementor implements Impler {
             }
             classCode.append(String.format("){%s        %s", System.lineSeparator(), "return"));
             if (!returnType.getName().equals(void.class.getName())) {
-
                 if (returnType.isPrimitive()) {
                     classCode.append(String.format(" %s",
                             returnType.getName().equals(boolean.class.getName()) ?
-                                    BOOL_DEFAULT :
-                                    OTHER_PRIMITIVE_DEFAULT));
+                                    "false" :
+                                    "0"));
                 } else {
-                    classCode.append(String.format(" %s", OBJ_DEFAULT));
+                    classCode.append(" null");
                 }
             }
             classCode.append(String.format(";%s    }%s", System.lineSeparator(), System.lineSeparator()));
         });
 
         classCode.append("}");
-        Path path = Paths
-                .get(root.toString(),
-                        token
-                                .getPackageName()
-                                .replaceAll("\\.", "\\" + File.separator),
-                        token.getSimpleName() + "Impl." + "java");
-        try (BufferedWriter bw = Files.newBufferedWriter(path)){
+        Path path = Paths.get(root.toString(),
+                token.getPackageName().replaceAll("\\.", "\\" + File.separator),
+                token.getSimpleName() + "Impl." + "java");
+        try (BufferedWriter bw = Files.newBufferedWriter(path)) {
             Files.createDirectories(path.getParent());
             bw.write(classCode.toString());
         } catch (IOException e) {
