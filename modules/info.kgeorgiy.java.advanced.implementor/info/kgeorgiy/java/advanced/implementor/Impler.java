@@ -21,4 +21,5 @@ public interface Impler {
      * generated.
      */
     void implement(Class<?> token, Path root) throws ImplerException;
+
 }

@@ -1,24 +1,19 @@
 package info.kgeorgiy.ja.asmirko.implementor;
 
+import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
-import info.kgeorgiy.java.advanced.implementor.JarImpler;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.jar.JarOutputStream;
-import java.util.zip.ZipEntry;
-import javax.tools.*;
 
-public class Implementor implements JarImpler {
+public class Implementor implements Impler {
 
     private static final String PUBLIC_KEYWORD = "public";
     private static final String BOOL_DEFAULT = "false";
@@ -28,9 +23,10 @@ public class Implementor implements JarImpler {
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
         StringBuilder classCode = new StringBuilder();
-
-        classCode.append(String.format("%s %s; %s", "package", Optional.of(token.getPackageName()).orElse(""), System.lineSeparator()));
-
+        String packageName = token.getPackageName();
+        Optional.of(token.getPackageName()).ifPresent(s -> {
+            classCode.append(String.format("package %s; %s", Optional.of(token.getPackageName()).orElse(""), System.lineSeparator()));
+        });
         int modifiers = token.getModifiers();
         if (Modifier.isPrivate(modifiers)) {
             throw new ImplerException();
@@ -56,6 +52,8 @@ public class Implementor implements JarImpler {
         );
 
         Arrays.stream(token.getMethods()).forEach(m -> {
+//            Arrays.stream(m.getAnnotations())
+//                    .forEach(annotation -> {});
             int mModifiers = m.getModifiers();
             classCode.append("    ");
 
@@ -117,44 +115,6 @@ public class Implementor implements JarImpler {
                 IOException e) {
             e.printStackTrace();
             throw new ImplerException(String.format("Internal error, unable to create StringBuilder or perform writing operation, internal exception message: %s", e.getMessage()));
-        }
-    }
-
-    private Path getPathToSomeShit(Path jarFile, Class<?> token, String fileExtension) {
-        return Paths
-                .get(jarFile.toString(),
-                        token
-                                .getPackageName()
-                                .replaceAll("\\.", "\\" + File.separator),
-                        token.getSimpleName() + "Impl." + fileExtension);
-    }
-
-    @Override
-    public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
-        Path dir = jarFile.getParent();
-        implement(token, dir);
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        try {
-            if (compiler.run(null, null, null, "-cp", Path.of(token.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
-                    getPathToSomeShit(jarFile, token, "java").toString()) == 0) {
-                try (
-                        var jOS = new JarOutputStream(
-                                Files.newOutputStream(
-                                        jarFile,
-                                        StandardOpenOption.WRITE
-                                )
-                        )
-                ) {
-                    jOS.putNextEntry(new ZipEntry(getPathToSomeShit(Path.of(""), token, "class").toString()));
-                    Files.copy(getPathToSomeShit(jarFile, token, "class"), jOS);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                throw new ImplerException();
-            }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
         }
     }
 }
