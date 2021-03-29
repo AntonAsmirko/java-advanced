@@ -19,12 +19,6 @@ public class DescriptorImpl implements info.kgeorgiy.java.advanced.implementor.b
     public boolean isValid(){
         return false;
     }
-    public java.lang.Object getFieldValue(java.lang.String arg1){
-        return null;
-    }
-    public void setField(java.lang.String arg1, java.lang.Object arg2){
-        return;
-    }
     public java.lang.String[] getFieldNames(){
         return null;
     }
@@ -32,6 +26,12 @@ public class DescriptorImpl implements info.kgeorgiy.java.advanced.implementor.b
         return null;
     }
     public void removeField(java.lang.String arg1){
+        return;
+    }
+    public java.lang.Object getFieldValue(java.lang.String arg1){
+        return null;
+    }
+    public void setField(java.lang.String arg1, java.lang.Object arg2){
         return;
     }
 }

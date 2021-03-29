@@ -23,7 +23,6 @@ public class Implementor implements Impler {
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
         StringBuilder classCode = new StringBuilder();
-        String packageName = token.getPackageName();
         Optional.of(token.getPackageName()).ifPresent(s -> {
             classCode.append(String.format("package %s; %s", Optional.of(token.getPackageName()).orElse(""), System.lineSeparator()));
         });
@@ -99,22 +98,12 @@ public class Implementor implements Impler {
                                 .getPackageName()
                                 .replaceAll("\\.", "\\" + File.separator),
                         token.getSimpleName() + "Impl." + "java");
-        try {
+        try (BufferedWriter bw = Files.newBufferedWriter(path)){
             Files.createDirectories(path.getParent());
-            //Files.createFile(path);
-        } catch (
-                IOException e) {
-            e.printStackTrace();
-            throw new ImplerException(String.format("Internal error, can't create file to write class, internal exception message: %s", e.getMessage()));
-        }
-        try (BufferedWriter bw = Files.newBufferedWriter(
-                path
-        )) {
             bw.write(classCode.toString());
-        } catch (
-                IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
-            throw new ImplerException(String.format("Internal error, unable to create StringBuilder or perform writing operation, internal exception message: %s", e.getMessage()));
+            throw new ImplerException(String.format("Internal error: %s", e.getMessage()));
         }
     }
 }
