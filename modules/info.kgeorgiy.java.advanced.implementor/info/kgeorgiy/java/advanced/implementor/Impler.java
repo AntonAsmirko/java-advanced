@@ -1,5 +1,6 @@
 package info.kgeorgiy.java.advanced.implementor;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 /**
