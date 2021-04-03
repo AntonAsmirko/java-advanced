@@ -65,9 +65,9 @@ public class BaseImplementorTest extends BaseTest {
     }
 
     public static void clean(final Path root) throws IOException {
-//        if (Files.exists(root)) {
-//            Files.walkFileTree(root, DELETE_VISITOR);
-//        }
+        if (Files.exists(root)) {
+            Files.walkFileTree(root, DELETE_VISITOR);
+        }
     }
 
     public static Path getFile(final Path root, final Class<?> clazz) {

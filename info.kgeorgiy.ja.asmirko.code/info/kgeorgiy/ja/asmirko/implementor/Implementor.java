@@ -18,9 +18,15 @@ public class Implementor implements Impler {
 
     private ArrayList<Method> getAllMethods(Class<?> token) {
         ArrayList<Method> methods = new ArrayList<>();
-        while (token != null) {
-            methods.addAll(List.of(token.getMethods()));
-            token = token.getSuperclass();
+        LinkedList<Class<?>> queue = new LinkedList<>();
+        queue.add(token);
+        while (!queue.isEmpty()) {
+            Class<?> cur = queue.removeFirst();
+            methods.addAll(List.of(cur.getDeclaredMethods()));
+            if (cur.getSuperclass() != null) {
+                queue.add(cur.getSuperclass());
+            }
+            queue.addAll(Arrays.asList(cur.getInterfaces()));
         }
         return methods;
     }
@@ -48,7 +54,7 @@ public class Implementor implements Impler {
 
         boolean allPrivate = true;
         Constructor<?>[] constructors = token.getDeclaredConstructors();
-        if(constructors.length == 0){
+        if (constructors.length == 0) {
             allPrivate = false;
         }
         for (Constructor<?> c : constructors) {
@@ -84,13 +90,17 @@ public class Implementor implements Impler {
             throw new ImplerException("YO");
 
         HashSet<MethodWrapper> processedMethods = new HashSet<>();
+        HashSet<MethodWrapper> finalMethods = new HashSet<>();
         for (Method m : getAllMethods(token)) {
             final int mModifiers = m.getModifiers();
+            final Class<?> returnType = m.getReturnType();
             MethodWrapper mw = new MethodWrapper(m);
-            if (Modifier.isFinal(mModifiers) || Modifier.isPrivate(mModifiers)) {
+            if (Modifier.isPrivate(mModifiers) || processedMethods.contains(mw) || finalMethods.contains(mw)
+                    || returnType.getCanonicalName().contains("internal")) {
                 continue;
             }
-            if (processedMethods.contains(mw)) {
+            if (Modifier.isFinal(mModifiers)) {
+                finalMethods.add(mw);
                 continue;
             }
             processedMethods.add(mw);
@@ -102,7 +112,6 @@ public class Implementor implements Impler {
             if (Modifier.isStatic(mModifiers))
                 classCode.append("static ");
 
-            final Class<?> returnType = m.getReturnType();
             final Class<?>[] mParameterTypes = m.getParameterTypes();
             final Class<?>[] mExceptions = m.getExceptionTypes();
             classCode.append(String.format("%s %s(%s) %s {%n    return",
