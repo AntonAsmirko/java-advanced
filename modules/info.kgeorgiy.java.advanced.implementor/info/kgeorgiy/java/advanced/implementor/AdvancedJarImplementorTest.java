@@ -11,7 +11,7 @@ import java.nio.file.Path;
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ClassJarImplementorTest extends ClassImplementorTest {
+public class AdvancedJarImplementorTest extends AdvancedImplementorTest {
     @Test
     @Override
     public void test01_constructor() {
