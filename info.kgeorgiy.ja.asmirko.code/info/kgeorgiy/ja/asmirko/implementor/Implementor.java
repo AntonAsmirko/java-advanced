@@ -9,18 +9,18 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Optional;
 
 public class Implementor implements Impler {
 
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
-        StringBuilder classCode = new StringBuilder();
-        classCode.append(String.format("package %s; %n", token.getPackageName()));
         int modifiers = token.getModifiers();
         if (Modifier.isPrivate(modifiers)) {
-            throw new ImplerException();
+            throw new ImplerException("Can't implement private interface");
         }
+        StringBuilder classCode = new StringBuilder();
+        classCode.append(String.format("package %s; %n", token.getPackageName()));
+
         if (Modifier.isPublic(modifiers)) {
             classCode.append("public ");
         }
@@ -70,22 +70,15 @@ public class Implementor implements Impler {
         classCode.append("}");
         Path pathToFile = root.resolve(token.getPackageName().replace(".", "/"));
         Path file = pathToFile.resolve(String.format("%sImpl.java", token.getSimpleName()));
-        BufferedWriter bw = null;
         try {
             Files.createDirectories(pathToFile);
             Files.createFile(file);
-            bw = Files.newBufferedWriter(file);
-            bw.write(classCode.toString());
+            try (BufferedWriter bw = Files.newBufferedWriter(file)){
+                bw.write(classCode.toString());
+            }
         } catch (IOException e) {
             e.printStackTrace();
             throw new ImplerException(String.format("Internal error: %s", e.getMessage()));
-        } finally {
-            try {
-                if (bw != null)
-                    bw.close();
-            } catch (IOException e) {
-                throw new ImplerException(String.format("Internal error: %s", e.getMessage()));
-            }
         }
     }
 }
