@@ -14,6 +14,9 @@ public class Implementor implements Impler {
 
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
+        if (token.isPrimitive()) {
+            throw new ImplerException("Can't implement primitive");
+        }
         int modifiers = token.getModifiers();
         if (Modifier.isPrivate(modifiers)) {
             throw new ImplerException("Can't implement private interface");
@@ -26,9 +29,6 @@ public class Implementor implements Impler {
         }
         classCode.append("class ");
 
-        if (token.isPrimitive()) {
-            throw new ImplerException();
-        }
         classCode.append(String.format("%sImpl implements %s {%n%n", token.getSimpleName(), token.getCanonicalName()));
 
         Arrays.stream(token.getMethods()).forEach(m -> {
@@ -73,7 +73,7 @@ public class Implementor implements Impler {
         try {
             Files.createDirectories(pathToFile);
             Files.createFile(file);
-            try (BufferedWriter bw = Files.newBufferedWriter(file)){
+            try (BufferedWriter bw = Files.newBufferedWriter(file)) {
                 bw.write(classCode.toString());
             }
         } catch (IOException e) {
