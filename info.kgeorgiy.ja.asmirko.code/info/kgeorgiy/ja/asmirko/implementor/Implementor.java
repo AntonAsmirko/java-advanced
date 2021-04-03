@@ -9,57 +9,48 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Implementor implements Impler {
 
     @Override
-    public void implement(Class<?> token, Path root) throws ImplerException {
-        if (token.isPrimitive()) {
-            throw new ImplerException("Can't implement primitive");
+    public void implement(final Class<?> token, final Path root) throws ImplerException {
+        if (!token.isInterface()) {
+            throw new ImplerException("token should be interface");
         }
-        int modifiers = token.getModifiers();
+        final int modifiers = token.getModifiers();
         if (Modifier.isPrivate(modifiers)) {
             throw new ImplerException("Can't implement private interface");
         }
-        StringBuilder classCode = new StringBuilder();
+        final StringBuilder classCode = new StringBuilder();
         classCode.append(String.format("package %s; %n", token.getPackageName()));
 
         if (Modifier.isPublic(modifiers)) {
             classCode.append("public ");
         }
-        classCode.append("class ");
 
-        classCode.append(String.format("%sImpl implements %s {%n%n", token.getSimpleName(), token.getCanonicalName()));
+        classCode.append(String.format("class %sImpl implements %s {%n%n", token.getSimpleName(), token.getCanonicalName()));
 
         Arrays.stream(token.getMethods()).forEach(m -> {
             Arrays.stream(m.getAnnotations())
-                    .forEach(annotation -> classCode.append(String.format("@%s%n", annotation.annotationType().getName())));
-            int mModifiers = m.getModifiers();
+                    .forEach(annotation
+                            -> classCode.append(String.format("@%s%n", annotation.annotationType().getName())));
+            final int mModifiers = m.getModifiers();
             classCode.append("    ");
 
             if (Modifier.isPublic(mModifiers))
                 classCode.append("public ");
 
-            Class<?> returnType = m.getReturnType();
-            classCode.append(String.format("%s ", returnType.isPrimitive() ?
-                    returnType.getName() :
-                    returnType.getCanonicalName())
-            );
-            classCode.append(String.format("%s(", m.getName()));
-            Class<?>[] mParameterTypes = m.getParameterTypes();
-            for (int i = 0; i < mParameterTypes.length; i++) {
-                classCode.append(String.format("%s arg%d", mParameterTypes[i].getCanonicalName(), i + 1));
-
-                if (i != mParameterTypes.length - 1)
-                    classCode.append(", ");
-            }
-            classCode.append(String.format("){%n        return"));
+            final Class<?> returnType = m.getReturnType();
+            final Class<?>[] mParameterTypes = m.getParameterTypes();
+            classCode.append(String.format("%s %s(%s){%n    return", returnType.getCanonicalName(), m.getName(),
+                    IntStream.range(0, mParameterTypes.length)
+                            .mapToObj(i -> String.format("%s arg%d", mParameterTypes[i].getCanonicalName(), i + 1))
+                            .collect(Collectors.joining(", "))));
             if (!returnType.getName().equals(void.class.getName())) {
                 if (returnType.isPrimitive()) {
-                    classCode.append(String.format(" %s",
-                            returnType.getName().equals(boolean.class.getName()) ?
-                                    "false" :
-                                    "0"));
+                    classCode.append(String.format(" %s", returnType.isAssignableFrom(boolean.class) ? "false" : "0"));
                 } else {
                     classCode.append(" null");
                 }
