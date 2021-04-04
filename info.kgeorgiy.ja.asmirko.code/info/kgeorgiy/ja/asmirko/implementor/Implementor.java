@@ -30,12 +30,10 @@ public class Implementor implements Impler {
     }
 
     private <T extends Executable> String mm(T executable, Function<T, String> nameSup, String a, String b, String... c) {
-        return String.format(a,
-                String.join(" ", c),
+        return String.format(a, String.join(" ", c),
                 nameSup.apply(executable),
                 joinArguments(executable.getParameters()),
-                joinExceptions(executable.getExceptionTypes()),
-                b);
+                joinExceptions(executable.getExceptionTypes()), b);
     }
 
 
@@ -57,15 +55,7 @@ public class Implementor implements Impler {
     }
 
     private String getDefaultValue(Class<?> clazz) {
-        if (!clazz.isPrimitive()) {
-            return "null";
-        } else if (clazz == boolean.class) {
-            return "false";
-        } else if (clazz == void.class) {
-            return "";
-        } else {
-            return "0";
-        }
+        return clazz != void.class ? clazz == boolean.class ? "false" : !clazz.isPrimitive() ? "null" : "0" : "";
     }
 
     @Override
@@ -78,24 +68,25 @@ public class Implementor implements Impler {
         }
         if (constructors.length != 0
                 && Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
-            throw new ImplerException("YO");
+            throw new ImplerException("");
         }
         final String result = String.format("%s %n public class %sImpl %s %s {%n%n%s%n%s}",
-                token.getPackageName().equals("") ? "" : String.format("package %s;", token.getPackageName()),
+                token.getPackageName().isEmpty() ? "" : String.format("package %s;", token.getPackageName()),
                 token.getSimpleName(),
                 token.isInterface() ? "implements" : "extends",
                 token.getCanonicalName(),
                 mapAndJoin(Arrays.stream(token.getDeclaredConstructors())
                                 .filter(c -> !Modifier.isPrivate(c.getModifiers())),
                         m -> mm(m, c -> c.getDeclaringClass().getSimpleName(),
-                                "public %s%sImpl(%s) %s {%n    super(%s);%n    }%n",
+                                "public %s%sImpl(%s) %s {%n super(%s);%n}%n",
                                 streamMapAndJoin(m.getParameters(), Parameter::getName))),
                 mapAndJoin(getAllMethods(token)
-                        .map(MethodWrapper::getMethod), m -> mm(
-                        m, Method::getName, "public %s %s(%s) %s {%n    return %s;%n    }%n",
-                        getDefaultValue(m.getReturnType()),
-                        Modifier.isStatic(m.getModifiers()) ? "static " : "",
-                        m.getReturnType().getCanonicalName())));
+                                .map(MethodWrapper::getMethod),
+                        m -> mm(m, Method::getName,
+                                "public %s %s(%s) %s {%n return %s;%n}%n",
+                                getDefaultValue(m.getReturnType()),
+                                Modifier.isStatic(m.getModifiers()) ? "static " : "",
+                                m.getReturnType().getCanonicalName())));
 
         Path pathToFile = root.resolve(token.getPackageName().replace(".", "/"));
         Path file = pathToFile.resolve(String.format("%sImpl.java", token.getSimpleName()));
