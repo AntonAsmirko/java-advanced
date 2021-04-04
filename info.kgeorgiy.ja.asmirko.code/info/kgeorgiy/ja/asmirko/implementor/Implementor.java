@@ -8,41 +8,52 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class Implementor implements Impler {
 
-    private ArrayList<Method> getAllMethods(Class<?> token) {
-        ArrayList<Method> methods = new ArrayList<>();
+    private List<MethodWrapper> getAllMethods(Class<?> token) {
         LinkedList<Class<?>> queue = new LinkedList<>();
+        HashSet<MethodWrapper> processedMethods = new HashSet<>();
         queue.add(token);
         while (!queue.isEmpty()) {
             Class<?> cur = queue.removeFirst();
-            methods.addAll(List.of(cur.getDeclaredMethods()));
+            for (final Method method : cur.getDeclaredMethods()) {
+                final int mModifiers = method.getModifiers();
+                final Class<?> returnType = method.getReturnType();
+                MethodWrapper mw = new MethodWrapper(method);
+                if (Modifier.isPrivate(mModifiers) || processedMethods.contains(mw)
+                        || returnType.getCanonicalName().contains("internal")) {
+                    continue;
+                }
+                processedMethods.add(mw);
+            }
             if (cur.getSuperclass() != null) {
                 queue.add(cur.getSuperclass());
             }
             queue.addAll(Arrays.asList(cur.getInterfaces()));
         }
-        return methods;
+        return processedMethods.stream()
+                .filter(m -> !Modifier.isFinal(m.method.getModifiers()))
+                .collect(Collectors.toList());
+    }
+
+    private <T> String streamMapAndJoin(T[] arr, Function<T, String> fn) {
+        return Arrays.stream(arr).map(fn).collect(Collectors.joining(", "));
     }
 
     private String joinExceptions(Class<?>[] exceptions) {
         return exceptions.length > 0 ?
-                String.format("throws %s", Arrays.stream(exceptions)
-                        .map(Class::getCanonicalName)
-                        .collect(Collectors.joining(", ")))
-                : "";
+                String.format("throws %s", streamMapAndJoin(exceptions, Class::getCanonicalName)) : "";
     }
 
-    private String joinArguments(Class<?>[] arguments) {
-        return IntStream.range(0, arguments.length)
-                .mapToObj(i -> String.format("%s arg%d", arguments[i].getCanonicalName(), i))
-                .collect(Collectors.joining(", "));
+    private String joinArguments(Parameter[] arguments) {
+        return streamMapAndJoin(arguments, i -> String.format("%s %s", i.getType().getCanonicalName(), i.getName()));
     }
 
     private String getDefaultValue(Class<?> clazz) {
@@ -59,12 +70,15 @@ public class Implementor implements Impler {
 
     @Override
     public void implement(final Class<?> token, final Path root) throws ImplerException {
-        if (token.isPrimitive() || token.isEnum() || token == Enum.class) {
-            throw new ImplerException("token should be interface or class");
-        }
         final int modifiers = token.getModifiers();
-        if (Modifier.isPrivate(modifiers) || Modifier.isFinal(modifiers)) {
-            throw new ImplerException("Can't implement private interface or extend private or final class");
+        Constructor<?>[] constructors = token.getDeclaredConstructors();
+        if (token.isPrimitive() || token.isEnum() ||
+                token == Enum.class || Modifier.isPrivate(modifiers) || Modifier.isFinal(modifiers)) {
+            throw new ImplerException("can't implement given token");
+        }
+        if (constructors.length != 0
+                && Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
+            throw new ImplerException("YO");
         }
         final StringBuilder classCode = new StringBuilder();
         classCode.append(String.format("%s %n public class %sImpl %s %s {%n%n",
@@ -74,50 +88,25 @@ public class Implementor implements Impler {
                 token.getCanonicalName())
         );
 
-        Constructor<?>[] constructors = token.getDeclaredConstructors();
-        if (constructors.length != 0
-                && Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
-            throw new ImplerException("YO");
-        }
-        for (Constructor<?> c : constructors) {
-            final int cModifiers = c.getModifiers();
-            if (Modifier.isPrivate(cModifiers))
-                continue;
-            final Class<?>[] mParameterTypes = c.getParameterTypes();
-            final Class<?>[] mExceptions = c.getExceptionTypes();
-            classCode.append(String.format("public %sImpl(%s) %s {%n    super(%s);%n    }%n",
-                    token.getSimpleName(),
-                    joinArguments(mParameterTypes),
-                    joinExceptions(mExceptions),
-                    IntStream.range(0, mParameterTypes.length)
-                            .mapToObj(i -> String.format("arg%d", i))
-                            .collect(Collectors.joining(", "))));
-        }
+        classCode.append(Arrays.stream(token.getDeclaredConstructors())
+                .filter(c -> !Modifier.isPrivate(c.getModifiers()))
+                .map(c -> String.format("public %sImpl(%s) %s {%n    super(%s);%n    }%n",
+                        token.getSimpleName(),
+                        joinArguments(c.getParameters()),
+                        joinExceptions(c.getExceptionTypes()),
+                        Arrays.stream(c.getParameters())
+                                .map(Parameter::getName).collect(Collectors.joining(", "))))
+                .collect(Collectors.joining()));
 
-        HashSet<MethodWrapper> processedMethods = new HashSet<>();
-        HashSet<MethodWrapper> finalMethods = new HashSet<>();
-        for (Method m : getAllMethods(token)) {
-            final int mModifiers = m.getModifiers();
-            final Class<?> returnType = m.getReturnType();
-            MethodWrapper mw = new MethodWrapper(m);
-            if (Modifier.isPrivate(mModifiers) || processedMethods.contains(mw) || finalMethods.contains(mw)
-                    || returnType.getCanonicalName().contains("internal")) {
-                continue;
-            }
-            if (Modifier.isFinal(mModifiers)) {
-                finalMethods.add(mw);
-                continue;
-            }
-            processedMethods.add(mw);
-
-            final Class<?>[] mParameterTypes = m.getParameterTypes();
-            final Class<?>[] mExceptions = m.getExceptionTypes();
+        for (final MethodWrapper mWrapper : getAllMethods(token)) {
+            final Method method = mWrapper.method;
+            final Class<?> returnType = method.getReturnType();
             classCode.append(String.format("public %s %s %s(%s) %s {%n    return %s;%n    }%n",
-                    Modifier.isStatic(mModifiers) ? "static " : "",
+                    Modifier.isStatic(method.getModifiers()) ? "static " : "",
                     returnType.getCanonicalName(),
-                    m.getName(),
-                    joinArguments(mParameterTypes),
-                    joinExceptions(mExceptions),
+                    method.getName(),
+                    joinArguments(method.getParameters()),
+                    joinExceptions(method.getExceptionTypes()),
                     getDefaultValue(returnType)));
         }
         classCode.append("}");
@@ -140,11 +129,13 @@ public class Implementor implements Impler {
         final List<String> argTypes;
         final String name;
         final int arsHash;
+        final Method method;
 
         public MethodWrapper(Method m) {
-            argTypes = Arrays.stream(m.getParameterTypes()).map(Class::getCanonicalName).collect(Collectors.toList());
-            name = m.getName();
-            arsHash = argTypes.hashCode();
+            this.argTypes = Arrays.stream(m.getParameterTypes()).map(Class::getCanonicalName).collect(Collectors.toList());
+            this.name = m.getName();
+            this.arsHash = argTypes.hashCode();
+            this.method = m;
         }
 
         @Override
