@@ -45,9 +45,21 @@ public class Implementor implements Impler {
                 .collect(Collectors.joining(", "));
     }
 
+    private String getDefaultValue(Class<?> clazz) {
+        if (!clazz.isPrimitive()) {
+            return "null";
+        } else if (clazz == boolean.class) {
+            return "false";
+        } else if (clazz == void.class) {
+            return "";
+        } else {
+            return "0";
+        }
+    }
+
     @Override
     public void implement(final Class<?> token, final Path root) throws ImplerException {
-        if (token.isPrimitive() || token.isEnum() || token.getCanonicalName().equals("java.lang.Enum")) {
+        if (token.isPrimitive() || token.isEnum() || token == Enum.class) {
             throw new ImplerException("token should be interface or class");
         }
         final int modifiers = token.getModifiers();
@@ -55,15 +67,16 @@ public class Implementor implements Impler {
             throw new ImplerException("Can't implement private interface or extend private or final class");
         }
         final StringBuilder classCode = new StringBuilder();
-        classCode.append(String.format("package %s; %n public class %sImpl %s %s {%n%n",
-                token.getPackageName(),
+        classCode.append(String.format("%s %n public class %sImpl %s %s {%n%n",
+                token.getPackageName().equals("") ? "" : String.format("package %s;", token.getPackageName()),
                 token.getSimpleName(),
                 token.isInterface() ? "implements" : "extends",
                 token.getCanonicalName())
         );
 
         Constructor<?>[] constructors = token.getDeclaredConstructors();
-        if (Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
+        if (constructors.length != 0
+                && Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
             throw new ImplerException("YO");
         }
         for (Constructor<?> c : constructors) {
@@ -96,24 +109,16 @@ public class Implementor implements Impler {
                 continue;
             }
             processedMethods.add(mw);
-            classCode.append(String.format("%s %s",
-                    Modifier.isPublic(mModifiers) ? "public " : "protected ",
-                    Modifier.isStatic(mModifiers) ? "static " : ""));
 
             final Class<?>[] mParameterTypes = m.getParameterTypes();
             final Class<?>[] mExceptions = m.getExceptionTypes();
-            classCode.append(String.format("%s %s(%s) %s {%n    return",
+            classCode.append(String.format("public %s %s %s(%s) %s {%n    return %s;%n    }%n",
+                    Modifier.isStatic(mModifiers) ? "static " : "",
                     returnType.getCanonicalName(),
                     m.getName(),
                     joinArguments(mParameterTypes),
-                    joinExceptions(mExceptions)));
-            if (returnType != void.class) {
-                classCode.append(
-                        returnType.isPrimitive() ?
-                                String.format(" %s", returnType == boolean.class ? "false" : "0") :
-                                " null");
-            }
-            classCode.append(String.format(";%n    }%n"));
+                    joinExceptions(mExceptions),
+                    getDefaultValue(returnType)));
         }
         classCode.append("}");
         Path pathToFile = root.resolve(token.getPackageName().replace(".", "/"));
@@ -137,9 +142,7 @@ public class Implementor implements Impler {
         final int arsHash;
 
         public MethodWrapper(Method m) {
-            argTypes = Arrays.stream(m.getParameterTypes())
-                    .map(Class::getCanonicalName)
-                    .sorted(Comparator.naturalOrder()).collect(Collectors.toUnmodifiableList());
+            argTypes = Arrays.stream(m.getParameterTypes()).map(Class::getCanonicalName).collect(Collectors.toList());
             name = m.getName();
             arsHash = argTypes.hashCode();
         }
