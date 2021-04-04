@@ -80,43 +80,37 @@ public class Implementor implements Impler {
                 && Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
             throw new ImplerException("YO");
         }
-        final StringBuilder classCode = new StringBuilder();
-        classCode.append(String.format("%s %n public class %sImpl %s %s {%n%n",
+        String result = String.format("%s %n public class %sImpl %s %s {%n%n%s%n%s}",
                 token.getPackageName().equals("") ? "" : String.format("package %s;", token.getPackageName()),
                 token.getSimpleName(),
                 token.isInterface() ? "implements" : "extends",
-                token.getCanonicalName())
-        );
-
-        classCode.append(Arrays.stream(token.getDeclaredConstructors())
-                .filter(c -> !Modifier.isPrivate(c.getModifiers()))
-                .map(c -> String.format("public %sImpl(%s) %s {%n    super(%s);%n    }%n",
-                        token.getSimpleName(),
-                        joinArguments(c.getParameters()),
-                        joinExceptions(c.getExceptionTypes()),
-                        Arrays.stream(c.getParameters())
-                                .map(Parameter::getName).collect(Collectors.joining(", "))))
-                .collect(Collectors.joining()));
-
-        for (final MethodWrapper mWrapper : getAllMethods(token)) {
-            final Method method = mWrapper.method;
-            final Class<?> returnType = method.getReturnType();
-            classCode.append(String.format("public %s %s %s(%s) %s {%n    return %s;%n    }%n",
-                    Modifier.isStatic(method.getModifiers()) ? "static " : "",
-                    returnType.getCanonicalName(),
-                    method.getName(),
-                    joinArguments(method.getParameters()),
-                    joinExceptions(method.getExceptionTypes()),
-                    getDefaultValue(returnType)));
-        }
-        classCode.append("}");
+                token.getCanonicalName(),
+                Arrays.stream(token.getDeclaredConstructors())
+                        .filter(c -> !Modifier.isPrivate(c.getModifiers()))
+                        .map(c -> String.format("public %sImpl(%s) %s {%n    super(%s);%n    }%n",
+                                token.getSimpleName(),
+                                joinArguments(c.getParameters()),
+                                joinExceptions(c.getExceptionTypes()),
+                                Arrays.stream(c.getParameters())
+                                        .map(Parameter::getName).collect(Collectors.joining(", "))))
+                        .collect(Collectors.joining()),
+                getAllMethods(token).stream()
+                        .map(MethodWrapper::getMethod)
+                        .map(m -> String.format("public %s %s %s(%s) %s {%n    return %s;%n    }%n",
+                                Modifier.isStatic(m.getModifiers()) ? "static " : "",
+                                m.getReturnType().getCanonicalName(),
+                                m.getName(),
+                                joinArguments(m.getParameters()),
+                                joinExceptions(m.getExceptionTypes()),
+                                getDefaultValue(m.getReturnType())))
+                        .collect(Collectors.joining()));
         Path pathToFile = root.resolve(token.getPackageName().replace(".", "/"));
         Path file = pathToFile.resolve(String.format("%sImpl.java", token.getSimpleName()));
         try {
             Files.createDirectories(pathToFile);
             Files.createFile(file);
             try (BufferedWriter bw = Files.newBufferedWriter(file)) {
-                bw.write(classCode.toString());
+                bw.write(result);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -129,6 +123,11 @@ public class Implementor implements Impler {
         final List<String> argTypes;
         final String name;
         final int arsHash;
+
+        public Method getMethod() {
+            return method;
+        }
+
         final Method method;
 
         public MethodWrapper(Method m) {
