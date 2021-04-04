@@ -5,46 +5,46 @@ import info.kgeorgiy.java.advanced.implementor.ImplerException;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Implementor implements Impler {
 
-    private List<MethodWrapper> getAllMethods(Class<?> token) {
-        LinkedList<Class<?>> queue = new LinkedList<>();
-        HashSet<MethodWrapper> processedMethods = new HashSet<>();
-        queue.add(token);
-        while (!queue.isEmpty()) {
-            Class<?> cur = queue.removeFirst();
-            for (final Method method : cur.getDeclaredMethods()) {
-                final int mModifiers = method.getModifiers();
-                final Class<?> returnType = method.getReturnType();
-                MethodWrapper mw = new MethodWrapper(method);
-                if (Modifier.isPrivate(mModifiers) || processedMethods.contains(mw)
-                        || returnType.getCanonicalName().contains("internal")) {
-                    continue;
-                }
-                processedMethods.add(mw);
-            }
-            if (cur.getSuperclass() != null) {
-                queue.add(cur.getSuperclass());
-            }
-            queue.addAll(Arrays.asList(cur.getInterfaces()));
+    private Stream<MethodWrapper> getAllMethods(Class<?> token) {
+        Stream<MethodWrapper> processedMethods = Arrays.stream(token.getMethods()).map(MethodWrapper::new);
+        while (token != null) {
+            processedMethods = Stream.concat(processedMethods,
+                    Arrays.stream(token.getDeclaredMethods()).filter(m -> {
+                        int modifiers = m.getModifiers();
+                        return !Modifier.isPrivate(modifiers) && !Modifier.isPublic(modifiers);
+                    }).map(MethodWrapper::new));
+            token = token.getSuperclass();
         }
-        return processedMethods.stream()
-                .filter(m -> !Modifier.isFinal(m.method.getModifiers()))
-                .collect(Collectors.toList());
+        return processedMethods.distinct().filter(m -> !Modifier.isFinal(m.method.getModifiers()))
+                .filter(m -> !m.method.getReturnType().getCanonicalName().contains("internal"));
     }
+
+    private <T extends Executable> String mm(T executable, String a, String b, String... c) {
+        return String.format(a,
+                String.join(" ", c),
+                executable.getName(),
+                joinArguments(executable.getParameters()),
+                joinExceptions(executable.getExceptionTypes()),
+                b);
+    }
+
 
     private <T> String streamMapAndJoin(T[] arr, Function<T, String> fn) {
         return Arrays.stream(arr).map(fn).collect(Collectors.joining(", "));
+    }
+
+    private <T extends Executable> String mapAndJoin(Stream<T> stream, Function<T, String> fn) {
+        return stream.map(fn).collect(Collectors.joining());
     }
 
     private String joinExceptions(Class<?>[] exceptions) {
@@ -71,7 +71,7 @@ public class Implementor implements Impler {
     @Override
     public void implement(final Class<?> token, final Path root) throws ImplerException {
         final int modifiers = token.getModifiers();
-        Constructor<?>[] constructors = token.getDeclaredConstructors();
+        final Constructor<?>[] constructors = token.getDeclaredConstructors();
         if (token.isPrimitive() || token.isEnum() ||
                 token == Enum.class || Modifier.isPrivate(modifiers) || Modifier.isFinal(modifiers)) {
             throw new ImplerException("can't implement given token");
@@ -80,30 +80,25 @@ public class Implementor implements Impler {
                 && Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
             throw new ImplerException("YO");
         }
-        String result = String.format("%s %n public class %sImpl %s %s {%n%n%s%n%s}",
+        final String result = String.format("%s %n public class %sImpl %s %s {%n%n%s%n%s}",
                 token.getPackageName().equals("") ? "" : String.format("package %s;", token.getPackageName()),
                 token.getSimpleName(),
                 token.isInterface() ? "implements" : "extends",
                 token.getCanonicalName(),
-                Arrays.stream(token.getDeclaredConstructors())
-                        .filter(c -> !Modifier.isPrivate(c.getModifiers()))
-                        .map(c -> String.format("public %sImpl(%s) %s {%n    super(%s);%n    }%n",
-                                token.getSimpleName(),
+                mapAndJoin(Arrays.stream(token.getDeclaredConstructors())
+                                .filter(c -> !Modifier.isPrivate(c.getModifiers())),
+                        c -> String.format("public %sImpl(%s) %s {%n    super(%s);%n    }%n",
+                                c.getDeclaringClass().getSimpleName(),
                                 joinArguments(c.getParameters()),
                                 joinExceptions(c.getExceptionTypes()),
                                 Arrays.stream(c.getParameters())
-                                        .map(Parameter::getName).collect(Collectors.joining(", "))))
-                        .collect(Collectors.joining()),
-                getAllMethods(token).stream()
-                        .map(MethodWrapper::getMethod)
-                        .map(m -> String.format("public %s %s %s(%s) %s {%n    return %s;%n    }%n",
-                                Modifier.isStatic(m.getModifiers()) ? "static " : "",
-                                m.getReturnType().getCanonicalName(),
-                                m.getName(),
-                                joinArguments(m.getParameters()),
-                                joinExceptions(m.getExceptionTypes()),
-                                getDefaultValue(m.getReturnType())))
-                        .collect(Collectors.joining()));
+                                        .map(Parameter::getName).collect(Collectors.joining(", ")))),
+                mapAndJoin(getAllMethods(token)
+                        .map(MethodWrapper::getMethod), m -> mm(m, "public %s %s(%s) %s {%n    return %s;%n    }%n",
+                        getDefaultValue(m.getReturnType()),
+                        Modifier.isStatic(m.getModifiers()) ? "static " : "",
+                        m.getReturnType().getCanonicalName())));
+
         Path pathToFile = root.resolve(token.getPackageName().replace(".", "/"));
         Path file = pathToFile.resolve(String.format("%sImpl.java", token.getSimpleName()));
         try {
@@ -113,7 +108,6 @@ public class Implementor implements Impler {
                 bw.write(result);
             }
         } catch (IOException e) {
-            e.printStackTrace();
             throw new ImplerException(String.format("Internal error: %s", e.getMessage()));
         }
     }
@@ -121,34 +115,36 @@ public class Implementor implements Impler {
     private static class MethodWrapper {
 
         final List<String> argTypes;
-        final String name;
         final int arsHash;
-
-        public Method getMethod() {
-            return method;
-        }
-
         final Method method;
 
         public MethodWrapper(Method m) {
-            this.argTypes = Arrays.stream(m.getParameterTypes()).map(Class::getCanonicalName).collect(Collectors.toList());
-            this.name = m.getName();
+            this.argTypes = Arrays.stream(m.getParameterTypes())
+                    .map(Class::getCanonicalName)
+                    .collect(Collectors.toUnmodifiableList());
             this.arsHash = argTypes.hashCode();
             this.method = m;
         }
 
         @Override
         public int hashCode() {
-            return arsHash * name.hashCode();
+            return arsHash * method.getName().hashCode();
         }
 
         @Override
         public boolean equals(Object other) {
             if (other instanceof MethodWrapper) {
+                if (this.hashCode() == other.hashCode())
+                    return true;
                 MethodWrapper otherMethod = (MethodWrapper) other;
-                return this.name.equals(otherMethod.name) && otherMethod.argTypes.equals(this.argTypes);
+                return this.method.getName().equals(otherMethod.method.getName())
+                        && otherMethod.argTypes.equals(this.argTypes);
             }
             return false;
+        }
+
+        public Method getMethod() {
+            return method;
         }
     }
 }
