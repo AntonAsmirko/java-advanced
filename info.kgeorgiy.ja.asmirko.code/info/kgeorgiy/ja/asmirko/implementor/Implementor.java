@@ -31,6 +31,19 @@ public class Implementor implements Impler {
         return methods;
     }
 
+    private String joinExceptions(Class<?>[] exceptions) {
+        return exceptions.length > 0 ?
+                String.format("throws %s", Arrays.stream(exceptions)
+                        .map(Class::getCanonicalName)
+                        .collect(Collectors.joining(", ")))
+                : "";
+    }
+
+    private String joinArguments(Class<?>[] arguments) {
+        return IntStream.range(0, arguments.length)
+                .mapToObj(i -> String.format("%s arg%d", arguments[i].getCanonicalName(), i))
+                .collect(Collectors.joining(", "));
+    }
 
     @Override
     public void implement(final Class<?> token, final Path root) throws ImplerException {
@@ -42,52 +55,31 @@ public class Implementor implements Impler {
             throw new ImplerException("Can't implement private interface or extend private or final class");
         }
         final StringBuilder classCode = new StringBuilder();
-        classCode.append(String.format("package %s; %n", token.getPackageName()));
-        if (Modifier.isPublic(modifiers)) {
-            classCode.append("public ");
-        }
-
-        classCode.append(String.format("class %sImpl %s %s {%n%n",
+        classCode.append(String.format("package %s; %n public class %sImpl %s %s {%n%n",
+                token.getPackageName(),
                 token.getSimpleName(),
                 token.isInterface() ? "implements" : "extends",
-                token.getCanonicalName()));
+                token.getCanonicalName())
+        );
 
-        boolean allPrivate = true;
         Constructor<?>[] constructors = token.getDeclaredConstructors();
-        if (constructors.length == 0) {
-            allPrivate = false;
+        if (Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
+            throw new ImplerException("YO");
         }
         for (Constructor<?> c : constructors) {
             final int cModifiers = c.getModifiers();
-            classCode.append("    ");
-
             if (Modifier.isPrivate(cModifiers))
                 continue;
-            allPrivate = false;
-            if (Modifier.isPublic(cModifiers))
-                classCode.append("public ");
-            if (Modifier.isProtected(cModifiers))
-                classCode.append("protected ");
             final Class<?>[] mParameterTypes = c.getParameterTypes();
             final Class<?>[] mExceptions = c.getExceptionTypes();
-            classCode.append(String.format("%sImpl(%s) %s {%n    super(%s)",
+            classCode.append(String.format("public %sImpl(%s) %s {%n    super(%s);%n    }%n",
                     token.getSimpleName(),
-                    IntStream.range(0, mParameterTypes.length)
-                            .mapToObj(i -> String.format("%s arg%d", mParameterTypes[i].getCanonicalName(), i))
-                            .collect(Collectors.joining(", ")),
-                    mExceptions.length > 0 ?
-                            String.format("throws %s", Arrays.stream(mExceptions)
-                                    .map(Class::getCanonicalName)
-                                    .collect(Collectors.joining(", ")))
-                            : "",
+                    joinArguments(mParameterTypes),
+                    joinExceptions(mExceptions),
                     IntStream.range(0, mParameterTypes.length)
                             .mapToObj(i -> String.format("arg%d", i))
                             .collect(Collectors.joining(", "))));
-            classCode.append(String.format(";%n    }%n"));
         }
-
-        if (allPrivate)
-            throw new ImplerException("YO");
 
         HashSet<MethodWrapper> processedMethods = new HashSet<>();
         HashSet<MethodWrapper> finalMethods = new HashSet<>();
@@ -104,33 +96,22 @@ public class Implementor implements Impler {
                 continue;
             }
             processedMethods.add(mw);
-            classCode.append("    ");
-            if (Modifier.isPublic(mModifiers))
-                classCode.append("public ");
-            if (Modifier.isProtected(mModifiers))
-                classCode.append("protected ");
-            if (Modifier.isStatic(mModifiers))
-                classCode.append("static ");
+            classCode.append(String.format("%s %s",
+                    Modifier.isPublic(mModifiers) ? "public " : "protected ",
+                    Modifier.isStatic(mModifiers) ? "static " : ""));
 
             final Class<?>[] mParameterTypes = m.getParameterTypes();
             final Class<?>[] mExceptions = m.getExceptionTypes();
             classCode.append(String.format("%s %s(%s) %s {%n    return",
                     returnType.getCanonicalName(),
                     m.getName(),
-                    IntStream.range(0, mParameterTypes.length)
-                            .mapToObj(i -> String.format("%s arg%d", mParameterTypes[i].getCanonicalName(), i))
-                            .collect(Collectors.joining(", ")),
-                    mExceptions.length > 0 ?
-                            String.format("throws %s", Arrays.stream(mExceptions)
-                                    .map(Class::getCanonicalName)
-                                    .collect(Collectors.joining(", ")))
-                            : ""));
-            if (!returnType.getName().equals(void.class.getName())) {
-                if (returnType.isPrimitive()) {
-                    classCode.append(String.format(" %s", returnType.isAssignableFrom(boolean.class) ? "false" : "0"));
-                } else {
-                    classCode.append(" null");
-                }
+                    joinArguments(mParameterTypes),
+                    joinExceptions(mExceptions)));
+            if (returnType != void.class) {
+                classCode.append(
+                        returnType.isPrimitive() ?
+                                String.format(" %s", returnType == boolean.class ? "false" : "0") :
+                                " null");
             }
             classCode.append(String.format(";%n    }%n"));
         }

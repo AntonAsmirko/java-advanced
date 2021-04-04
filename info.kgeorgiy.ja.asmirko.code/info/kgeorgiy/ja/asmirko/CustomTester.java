@@ -5,10 +5,7 @@ import info.kgeorgiy.ja.asmirko.students.StudentDB;
 import info.kgeorgiy.java.advanced.arrayset.AdvancedSetTest;
 import info.kgeorgiy.java.advanced.arrayset.NavigableSetTest;
 import info.kgeorgiy.java.advanced.arrayset.SortedSetTest;
-import info.kgeorgiy.java.advanced.implementor.ClassImplementorTest;
-import info.kgeorgiy.java.advanced.implementor.ClassJarImplementorTest;
-import info.kgeorgiy.java.advanced.implementor.InterfaceImplementorTest;
-import info.kgeorgiy.java.advanced.implementor.InterfaceJarImplementorTest;
+import info.kgeorgiy.java.advanced.implementor.*;
 import info.kgeorgiy.java.advanced.student.StudentQueryTest;
 import info.kgeorgiy.java.advanced.walk.Tester;
 import info.kgeorgiy.java.advanced.walk.WalkTest;
@@ -31,6 +28,7 @@ public class CustomTester extends Tester {
                 .add("Implementor", InterfaceImplementorTest.class)
                 .add("JarImplementor", InterfaceJarImplementorTest.class)
                 .add("ClassImplementor", ClassImplementorTest.class)
+                .add("AdvancedImplementor", AdvancedImplementorTest.class)
                 .run(args);
     }
 }
