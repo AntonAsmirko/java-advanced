@@ -29,10 +29,10 @@ public class Implementor implements Impler {
                 .filter(m -> !m.method.getReturnType().getCanonicalName().contains("internal"));
     }
 
-    private <T extends Executable> String mm(T executable, String a, String b, String... c) {
+    private <T extends Executable> String mm(T executable, Function<T, String> nameSup, String a, String b, String... c) {
         return String.format(a,
                 String.join(" ", c),
-                executable.getName(),
+                nameSup.apply(executable),
                 joinArguments(executable.getParameters()),
                 joinExceptions(executable.getExceptionTypes()),
                 b);
@@ -87,14 +87,12 @@ public class Implementor implements Impler {
                 token.getCanonicalName(),
                 mapAndJoin(Arrays.stream(token.getDeclaredConstructors())
                                 .filter(c -> !Modifier.isPrivate(c.getModifiers())),
-                        c -> String.format("public %sImpl(%s) %s {%n    super(%s);%n    }%n",
-                                c.getDeclaringClass().getSimpleName(),
-                                joinArguments(c.getParameters()),
-                                joinExceptions(c.getExceptionTypes()),
-                                Arrays.stream(c.getParameters())
-                                        .map(Parameter::getName).collect(Collectors.joining(", ")))),
+                        m -> mm(m, c -> c.getDeclaringClass().getSimpleName(),
+                                "public %s%sImpl(%s) %s {%n    super(%s);%n    }%n",
+                                streamMapAndJoin(m.getParameters(), Parameter::getName))),
                 mapAndJoin(getAllMethods(token)
-                        .map(MethodWrapper::getMethod), m -> mm(m, "public %s %s(%s) %s {%n    return %s;%n    }%n",
+                        .map(MethodWrapper::getMethod), m -> mm(
+                        m, Method::getName, "public %s %s(%s) %s {%n    return %s;%n    }%n",
                         getDefaultValue(m.getReturnType()),
                         Modifier.isStatic(m.getModifiers()) ? "static " : "",
                         m.getReturnType().getCanonicalName())));
