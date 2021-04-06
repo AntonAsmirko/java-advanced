@@ -174,11 +174,23 @@ public class Implementor implements Impler, JarImpler {
                 .filter(m -> !m.method.getReturnType().getCanonicalName().contains("internal"));
     }
 
-    private <T extends Executable> String mm(T executable, Function<T, String> nameSup, String a, String b, String... c) {
-        return String.format(a, String.join(" ", c),
+    /**
+     * Used for creation of code of single {@link Executable}
+     *
+     * @param executable     {@link Method} or {@link Constructor}
+     * @param nameSup        supplier of the name of {@link Executable}
+     * @param format         formatting pattern
+     * @param arguments      arguments of {@link Executable}
+     * @param otherModifiers modifiers such as <code>static</code>
+     * @param <T>            child of {@link Executable}
+     * @return formatted {@link String}
+     */
+    private <T extends Executable> String executablesCode(T executable, Function<T, String> nameSup, String format,
+                                                          String arguments, String... otherModifiers) {
+        return String.format(format, String.join(" ", otherModifiers),
                 nameSup.apply(executable),
                 joinParameters(executable.getParameters()),
-                joinExceptions(executable.getExceptionTypes()), b);
+                joinExceptions(executable.getExceptionTypes()), arguments);
     }
 
     /**
@@ -248,7 +260,7 @@ public class Implementor implements Impler, JarImpler {
     private String constructorsCode(Class<?> token) {
         return mapAndJoin(Arrays.stream(token.getDeclaredConstructors())
                         .filter(c -> !Modifier.isPrivate(c.getModifiers())),
-                m -> mm(m, c -> c.getDeclaringClass().getSimpleName(),
+                m -> executablesCode(m, c -> c.getDeclaringClass().getSimpleName(),
                         "public %s%sImpl(%s) %s {%n super(%s);%n}%n",
                         streamMapAndJoin(m.getParameters(), Parameter::getName)));
     }
@@ -262,7 +274,7 @@ public class Implementor implements Impler, JarImpler {
     private String methodsCode(Class<?> token) {
         return mapAndJoin(getAllMethods(token)
                         .map(MethodWrapper::getMethod),
-                m -> mm(m, Method::getName,
+                m -> executablesCode(m, Method::getName,
                         "public %s %s(%s) %s {%n return %s;%n}%n",
                         getDefaultValue(m.getReturnType()),
                         Modifier.isStatic(m.getModifiers()) ? "static " : "",
