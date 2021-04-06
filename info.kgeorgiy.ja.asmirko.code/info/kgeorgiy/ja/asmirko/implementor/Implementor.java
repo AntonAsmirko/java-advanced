@@ -38,16 +38,16 @@ public class Implementor implements Impler, JarImpler {
      * @param args -jar class-name path to file.jar.
      */
     public static void main(String[] args) {
-        if (args.length < 2 || args[0] == null || args[1] == null) {
+        if (args.length < 3 || args[1] == null || args[2] == null) {
             System.out.println("Implementor should take two strings");
             return;
         }
-        Path resultFile = Path.of(args[1]);
+        Path resultFile = Path.of(args[2]);
         Class<?> token;
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
         Implementor implementor = new Implementor();
         try {
-            token = classLoader.loadClass(args[0]);
+            token = classLoader.loadClass(args[1]);
             implementor.implementJar(token, resultFile);
         } catch (ClassNotFoundException | ImplerException e) {
             e.printStackTrace();
@@ -72,7 +72,7 @@ public class Implementor implements Impler, JarImpler {
         }
         if (constructors.length != 0
                 && Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
-            throw new ImplerException("");
+            throw new ImplerException("implemented class does not have public constructors");
 
         }
         final String result = String.format("%s %n public class %sImpl %s %s {%n%n%s%n%s}",
@@ -140,10 +140,9 @@ public class Implementor implements Impler, JarImpler {
      * @throws ImplerException if occurs errors with creation of file or writing to file.
      */
     private void writeResult(Class<?> token, Path root, String result) throws ImplerException {
-        Path pathToFile = root.resolve(token.getPackageName().replace(".", File.separator));
-        Path file = pathToFile.resolve(String.format("%sImpl.java", token.getSimpleName()));
         try {
-            Files.createDirectories(pathToFile);
+            Path file = getPathToTargetFile(root, token, "java");
+            Files.createDirectories(root.resolve(token.getPackageName().replace(".", File.separator)));
             Files.createFile(file);
             try (BufferedWriter bw = Files.newBufferedWriter(file)) {
                 bw.write(result);
