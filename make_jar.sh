@@ -1,0 +1,1 @@
+jar cmvf Manifest.MF Implementor.jar -C info.kgeorgiy.ja.asmirko.code .

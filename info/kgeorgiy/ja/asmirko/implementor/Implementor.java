@@ -65,11 +65,11 @@ public class Implementor implements Impler, JarImpler {
     @Override
     public void implement(final Class<?> token, final Path root) throws ImplerException {
         final int modifiers = token.getModifiers();
+        final Constructor<?>[] constructors = token.getDeclaredConstructors();
         if (token.isPrimitive() || token.isEnum() ||
                 token == Enum.class || Modifier.isPrivate(modifiers) || Modifier.isFinal(modifiers)) {
             throw new ImplerException("can't implement given token");
         }
-        final Constructor<?>[] constructors = token.getDeclaredConstructors();
         if (constructors.length != 0
                 && Arrays.stream(constructors).allMatch(c -> Modifier.isPrivate(c.getModifiers()))) {
             throw new ImplerException("implemented class does not have public constructors");
@@ -80,7 +80,7 @@ public class Implementor implements Impler, JarImpler {
                 token.getSimpleName(),
                 token.isInterface() ? "implements" : "extends",
                 token.getCanonicalName(),
-                constructorsCode(constructors),
+                constructorsCode(token),
                 methodsCode(token));
 
         writeResult(token, root, result);
@@ -106,8 +106,6 @@ public class Implementor implements Impler, JarImpler {
             }
             Manifest manifest = new Manifest();
             manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-            manifest.getMainAttributes().put(Attributes.Name.IMPLEMENTATION_VENDOR, "Anton Asmirko");
-
             jOS.putNextEntry(new ZipEntry(JarFile.MANIFEST_NAME));
             manifest.write(jOS);
             ZipEntry jar = new ZipEntry(Paths.get(token.getPackageName().replace(".", File.separator),
@@ -165,14 +163,14 @@ public class Implementor implements Impler, JarImpler {
         Stream<MethodWrapper> processedMethods = Arrays.stream(token.getMethods()).map(MethodWrapper::new);
         while (token != null) {
             processedMethods = Stream.concat(processedMethods,
-                    Arrays.stream(token.getDeclaredMethods())
-                            .filter(m -> {
+                    Arrays.stream(token.getDeclaredMethods()).filter(m -> {
                         int modifiers = m.getModifiers();
                         return !Modifier.isPrivate(modifiers) && !Modifier.isPublic(modifiers);
                     }).map(MethodWrapper::new));
             token = token.getSuperclass();
         }
-        return processedMethods.distinct().filter(m -> Modifier.isAbstract(m.method.getModifiers()));
+        return processedMethods.distinct().filter(m -> !Modifier.isFinal(m.method.getModifiers()))
+                .filter(m -> !m.method.getReturnType().getCanonicalName().contains("internal"));
     }
 
     /**
@@ -255,11 +253,11 @@ public class Implementor implements Impler, JarImpler {
     /**
      * Produces a code of constructors of given class.
      *
-     * @param constructors class to implement constructors code.
+     * @param token class to implement constructors code.
      * @return string containing a code of implemented constructors.
      */
-    private String constructorsCode(Constructor<?>[] constructors) {
-        return mapAndJoin(Arrays.stream(constructors)
+    private String constructorsCode(Class<?> token) {
+        return mapAndJoin(Arrays.stream(token.getDeclaredConstructors())
                         .filter(c -> !Modifier.isPrivate(c.getModifiers())),
                 m -> executablesCode(m, c -> c.getDeclaringClass().getSimpleName(),
                         "public %s%sImpl(%s) %s {%n super(%s);%n}%n",
@@ -267,7 +265,7 @@ public class Implementor implements Impler, JarImpler {
     }
 
     /**
-     * Similar to {@link Implementor#constructorsCode(Constructor[])} but produces code of methods.
+     * Similar to {@link Implementor#constructorsCode(Class)} but produces code of methods.
      *
      * @param token class to implement methods code.
      * @return string of implemented methods.
