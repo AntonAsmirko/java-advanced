@@ -80,7 +80,8 @@ public class Implementor implements Impler, JarImpler {
             manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
             jOS.putNextEntry(new ZipEntry(JarFile.MANIFEST_NAME));
             manifest.write(jOS);
-            ZipEntry jar = new ZipEntry(getPathToTargetFile(jarFile.getParent(), token, "class").toString());
+            ZipEntry jar = new ZipEntry(Paths.get( token.getPackageName().replace(".", File.separator),
+                    token.getSimpleName() + "Impl.class").toString());
             jOS.putNextEntry(jar);
             Files.copy(getPathToTargetFile(jarFile.getParent(), token, "class"), jOS);
         } catch (URISyntaxException | IOException e) {
