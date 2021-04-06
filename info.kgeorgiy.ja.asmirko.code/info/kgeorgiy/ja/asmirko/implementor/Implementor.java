@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.lang.reflect.*;
 import java.net.URISyntaxException;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.function.Function;
 import java.util.jar.Attributes;
@@ -87,14 +86,6 @@ public class Implementor implements Impler, JarImpler {
         } catch (URISyntaxException | IOException e) {
             e.printStackTrace();
             throw new ImplerException(e.getMessage());
-        } finally {
-//            try {
-//                CustomSimpleFileVisitor visitor = new CustomSimpleFileVisitor(jarFile, jarFile.getParent());
-//                Files.walkFileTree(jarFile.getParent(), visitor);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                throw new ImplerException(e.getMessage());
-//            }
         }
     }
 
@@ -212,33 +203,6 @@ public class Implementor implements Impler, JarImpler {
 
         public Method getMethod() {
             return method;
-        }
-    }
-
-    private static class CustomSimpleFileVisitor extends SimpleFileVisitor<Path> {
-
-        final private HashSet<Path> excludePaths;
-
-        public CustomSimpleFileVisitor(Path... excludePaths) {
-            this.excludePaths = new HashSet<>(Arrays.asList(excludePaths));
-        }
-
-        @Override
-        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-            deleteIfAbsent(file);
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
-            deleteIfAbsent(dir);
-            return FileVisitResult.CONTINUE;
-        }
-
-        private void deleteIfAbsent(Path path) throws IOException {
-            if (!excludePaths.contains(path)) {
-                Files.delete(path);
-            }
         }
     }
 }

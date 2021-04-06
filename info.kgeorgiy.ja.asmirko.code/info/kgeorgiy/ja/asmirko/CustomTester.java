@@ -26,7 +26,7 @@ public class CustomTester extends Tester {
                 .add("NavigableSet", NavigableSetTest.class)
                 .add("StudentDB", StudentQueryTest.class)
                 .add("Implementor", InterfaceImplementorTest.class)
-                .add("JarImplementor", InterfaceJarImplementorTest.class)
+                .add("JarImplementor", AdvancedJarImplementorTest.class)
                 .add("ClassImplementor", ClassImplementorTest.class)
                 .add("AdvancedImplementor", AdvancedImplementorTest.class)
                 .run(args);
