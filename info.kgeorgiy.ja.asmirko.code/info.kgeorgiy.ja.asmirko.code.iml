@@ -42,5 +42,6 @@
     <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.arrayset" />
     <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.student" />
     <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.implementor" />
+    <orderEntry type="module" module-name="info.kgeorgiy.java.advanced.concurrent" />
   </component>
 </module>

@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.*;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.Function;
@@ -102,7 +104,7 @@ public class Implementor implements Impler, JarImpler {
             String implementedPath = Path
                     .of(token.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
             if (compiler.run(null, null, null, "-cp", implementedPath,
-                    getPathToTargetFile(jarFile.getParent(), token, "java").toString()) != 0) {
+                    getPathToTargetFile(jarFile.getParent(), token, "java", File.separator).toString()) != 0) {
                 throw new ImplerException("Can't compile generated class");
             }
             Manifest manifest = new Manifest();
@@ -111,10 +113,10 @@ public class Implementor implements Impler, JarImpler {
 
             jOS.putNextEntry(new ZipEntry(JarFile.MANIFEST_NAME));
             manifest.write(jOS);
-            ZipEntry jar = new ZipEntry(Paths.get(token.getPackageName().replace(".", File.separator),
-                    token.getSimpleName() + "Impl.class").toString());
+            ZipEntry jar = new ZipEntry(String.format("%s/%s", token.getPackageName().replace(".", "/"),
+                    token.getSimpleName() + "Impl.class"));
             jOS.putNextEntry(jar);
-            Files.copy(getPathToTargetFile(jarFile.getParent(), token, "class"), jOS);
+            Files.copy(getPathToTargetFile(jarFile.getParent(), token, "class", "/"), jOS);
         } catch (URISyntaxException | IOException e) {
             e.printStackTrace();
             throw new ImplerException(e.getMessage());
@@ -129,9 +131,10 @@ public class Implementor implements Impler, JarImpler {
      * @param fileExtension extension of desired file.
      * @return path to target file with specified extension.
      */
-    private Path getPathToTargetFile(Path root, Class<?> token, String fileExtension) {
-        return Paths.get(root.toString(), token.getPackageName().replace(".", File.separator),
-                token.getSimpleName() + "Impl." + fileExtension);
+    private Path getPathToTargetFile(Path root, Class<?> token, String fileExtension, String separator) {
+        return Path.of(String.format("%s%s%s%s%s", root.toString(),
+                separator, token.getPackageName().replace(".", separator),
+                separator, token.getSimpleName() + "Impl." + fileExtension));
     }
 
     /**
@@ -144,7 +147,7 @@ public class Implementor implements Impler, JarImpler {
      */
     private void writeResult(Class<?> token, Path root, String result) throws ImplerException {
         try {
-            Path file = getPathToTargetFile(root, token, "java");
+            Path file = getPathToTargetFile(root, token, "java", File.separator);
             Files.createDirectories(root.resolve(token.getPackageName().replace(".", File.separator)));
             Files.createFile(file);
             try (BufferedWriter bw = Files.newBufferedWriter(file)) {

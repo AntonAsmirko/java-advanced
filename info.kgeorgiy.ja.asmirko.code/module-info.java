@@ -4,6 +4,7 @@ module info.kgeorgiy.ja.asmirko.code {
     requires info.kgeorgiy.java.advanced.student;
     requires info.kgeorgiy.java.advanced.implementor;
     requires java.compiler;
+    requires info.kgeorgiy.java.advanced.concurrent;
 
     exports info.kgeorgiy.ja.asmirko.arrayset;
     exports info.kgeorgiy.ja.asmirko.walk;
