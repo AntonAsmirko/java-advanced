@@ -48,6 +48,7 @@ public class Implementor implements Impler, JarImpler {
         Implementor implementor = new Implementor();
         try {
             token = classLoader.loadClass(args[1]);
+            implementor.implement(token, resultFile.getParent());
             implementor.implementJar(token, resultFile);
         } catch (ClassNotFoundException | ImplerException e) {
             e.printStackTrace();
@@ -147,11 +148,23 @@ public class Implementor implements Impler, JarImpler {
             Files.createDirectories(root.resolve(token.getPackageName().replace(".", File.separator)));
             Files.createFile(file);
             try (BufferedWriter bw = Files.newBufferedWriter(file)) {
-                bw.write(result);
+                bw.write(toUnicode(result));
             }
         } catch (IOException e) {
             throw new ImplerException(String.format("Internal error: %s", e.getMessage()));
         }
+    }
+
+    private String toUnicode(String str) {
+        StringBuilder sb = new StringBuilder();
+        for (final char c : str.toCharArray()) {
+            if (c >= 128) {
+                sb.append(String.format("\\u%04X", (int) c));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
     /**
@@ -167,30 +180,30 @@ public class Implementor implements Impler, JarImpler {
             processedMethods = Stream.concat(processedMethods,
                     Arrays.stream(token.getDeclaredMethods())
                             .filter(m -> {
-                        int modifiers = m.getModifiers();
-                        return !Modifier.isPrivate(modifiers) && !Modifier.isPublic(modifiers);
-                    }).map(MethodWrapper::new));
+                                int modifiers = m.getModifiers();
+                                return !Modifier.isPrivate(modifiers) && !Modifier.isPublic(modifiers);
+                            }).map(MethodWrapper::new));
             token = token.getSuperclass();
         }
         return processedMethods.distinct().filter(m -> Modifier.isAbstract(m.method.getModifiers()));
     }
 
+    private int removeUnAllowedModifiers(int modifiers) {
+        return modifiers & ~Modifier.TRANSIENT & ~Modifier.ABSTRACT;
+    }
+
     /**
      * Used for creation of code of single {@link Executable}
      *
-     * @param executable     {@link Method} or {@link Constructor}
-     * @param nameSup        supplier of the name of {@link Executable}
-     * @param format         formatting pattern
-     * @param arguments      arguments of {@link Executable}
-     * @param otherModifiers modifiers such as <code>static</code>
-     * @param <T>            child of {@link Executable}
+     * @param executable {@link Method} or {@link Constructor}
+     * @param name       supplier of the name of {@link Executable}
+     * @param format     formatting pattern
+     * @param arguments  arguments of {@link Executable}
+     * @param <T>        child of {@link Executable}
      * @return formatted {@link String}
      */
-    private <T extends Executable> String executablesCode(T executable, Function<T, String> nameSup, String format,
-                                                          String arguments, String... otherModifiers) {
-        return String.format(format, String.join(" ", otherModifiers),
-                nameSup.apply(executable),
-                joinParameters(executable.getParameters()),
+    private <T extends Executable> String executablesCode(T executable, String name, String format, String arguments, String modifiers) {
+        return String.format(format, modifiers, name, joinParameters(executable.getParameters()),
                 joinExceptions(executable.getExceptionTypes()), arguments);
     }
 
@@ -259,11 +272,10 @@ public class Implementor implements Impler, JarImpler {
      * @return string containing a code of implemented constructors.
      */
     private String constructorsCode(Constructor<?>[] constructors) {
-        return mapAndJoin(Arrays.stream(constructors)
-                        .filter(c -> !Modifier.isPrivate(c.getModifiers())),
-                m -> executablesCode(m, c -> c.getDeclaringClass().getSimpleName(),
-                        "public %s%sImpl(%s) %s {%n super(%s);%n}%n",
-                        streamMapAndJoin(m.getParameters(), Parameter::getName)));
+        return mapAndJoin(Arrays.stream(constructors),
+                m -> executablesCode(m, m.getDeclaringClass().getSimpleName(), "%s %sImpl(%s) %s {%n super(%s);%n}%n",
+                        streamMapAndJoin(m.getParameters(), Parameter::getName),
+                        Modifier.toString(removeUnAllowedModifiers(m.getModifiers()))));
     }
 
     /**
@@ -273,13 +285,11 @@ public class Implementor implements Impler, JarImpler {
      * @return string of implemented methods.
      */
     private String methodsCode(Class<?> token) {
-        return mapAndJoin(getAllMethods(token)
-                        .map(MethodWrapper::getMethod),
-                m -> executablesCode(m, Method::getName,
-                        "public %s %s(%s) %s {%n return %s;%n}%n",
+        return mapAndJoin(getAllMethods(token).map(MethodWrapper::getMethod),
+                m -> executablesCode(m, m.getName(), "%s %s(%s) %s {%n return %s;%n}%n",
                         getDefaultValue(m.getReturnType()),
-                        Modifier.isStatic(m.getModifiers()) ? "static " : "",
-                        m.getReturnType().getCanonicalName()));
+                        String.format("%s %s", Modifier.toString(removeUnAllowedModifiers(m.getModifiers())),
+                                m.getReturnType().getCanonicalName())));
     }
 
     /**
