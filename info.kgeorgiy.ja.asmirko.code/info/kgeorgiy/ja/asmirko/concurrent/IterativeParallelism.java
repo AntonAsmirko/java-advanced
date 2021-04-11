@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 public class IterativeParallelism implements ScalarIP {
 
     private <T> Stream<List<T>> partition(List<T> source, int length) {
-        int chunkLen = source.size() / length == 0 ? 1 : source.size() / length;
+        int chunkLen = source.size() / length;
         return IntStream.range(0, length + 1).mapToObj(
                 n -> source.subList(n * chunkLen, n == length ? source.size() : (n + 1) * chunkLen));
     }

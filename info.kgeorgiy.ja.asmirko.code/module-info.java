@@ -10,6 +10,7 @@ module info.kgeorgiy.ja.asmirko.code {
     exports info.kgeorgiy.ja.asmirko.walk;
     exports info.kgeorgiy.ja.asmirko.students;
     exports info.kgeorgiy.ja.asmirko.implementor;
+    exports info.kgeorgiy.ja.asmirko.concurrent;
 
     opens info.kgeorgiy.ja.asmirko.walk to junit;
 }
