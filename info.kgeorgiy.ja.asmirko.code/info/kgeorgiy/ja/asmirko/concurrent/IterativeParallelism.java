@@ -18,8 +18,8 @@ public class IterativeParallelism implements ScalarIP {
 
     private <T> Stream<List<T>> partition(List<T> source, int length) {
         int chunkLen = source.size() / length;
-        return IntStream.range(0, length + 1).mapToObj(
-                n -> source.subList(n * chunkLen, n == length ? source.size() : (n + 1) * chunkLen));
+        return IntStream.range(0, length + 1)
+                .mapToObj(n -> source.subList(n * chunkLen, n == length ? source.size() : (n + 1) * chunkLen));
     }
 
     private <T, U> U common(int threads, List<? extends T> values, BiConsumer<T, VarReference<U>> action,
@@ -27,13 +27,11 @@ public class IterativeParallelism implements ScalarIP {
         if (values.size() == 0) {
             throw new NoSuchElementException("No values are given");
         }
-        List<Thread> workers = partition(values, threads).map(chunk -> new Thread(() -> {
-            chunk.forEach(item -> {
-                synchronized (currentMaximum) {
-                    action.accept(item, currentMaximum);
-                }
-            });
-        })).peek(Thread::start).collect(Collectors.toList());
+        List<Thread> workers = partition(values, threads).map(chunk -> new Thread(() -> chunk.forEach(item -> {
+            synchronized (currentMaximum) {
+                action.accept(item, currentMaximum);
+            }
+        }))).peek(Thread::start).collect(Collectors.toList());
         for (final Thread worker : workers) {
             worker.join();
         }
@@ -65,14 +63,6 @@ public class IterativeParallelism implements ScalarIP {
 
     @Override
     public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
-        if (values.size() == 0) {
-            throw new NoSuchElementException("No values are given");
-        }
         return this.<T, Boolean>common(threads, values, (f, s) -> s.setVar(s.getVar() || predicate.test(f)), new VarReference<>(false));
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        IterativeParallelism iterativeParallelism = new IterativeParallelism();
-        System.out.println(iterativeParallelism.all(2, List.of(1, 2, 1000, 3, 4, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), (f)-> f > 0));
     }
 }
