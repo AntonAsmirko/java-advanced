@@ -5,43 +5,35 @@ import info.kgeorgiy.java.advanced.concurrent.ScalarIP;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * @author Anton Asmirko
  */
 public class IterativeParallelism implements ScalarIP {
 
-    @Override
-    public <T> T maximum(int threads, List<? extends T> values, Comparator<? super T> comparator) throws InterruptedException {
+    private <T> Stream<List<T>> partition(List<T> source, int length) {
+        int chunkLen = source.size() / length == 0 ? 1 : source.size() / length;
+        return IntStream.range(0, length + 1).mapToObj(
+                n -> source.subList(n * chunkLen, n == length ? source.size() : (n + 1) * chunkLen));
+    }
+
+    private <T, U> U common(int threads, List<? extends T> values, BiConsumer<T, VarReference<U>> action,
+                            VarReference<U> currentMaximum) throws InterruptedException {
         if (values.size() == 0) {
             throw new NoSuchElementException("No values are given");
         }
-        final VarReference<T> currentMaximum = new VarReference<>(values.get(0));
-        final VarReference<Integer> numThreads = new VarReference<>(0);
-
-        List<Thread> workers = values.stream().map(item -> {
-            Thread thread = new Thread(() -> {
+        List<Thread> workers = partition(values, threads).map(chunk -> new Thread(() -> {
+            chunk.forEach(item -> {
                 synchronized (currentMaximum) {
-                    System.out.println(currentMaximum.getVar() + " vs " + item);
-                    if (comparator.compare(currentMaximum.getVar(), item) < 0) {
-                        currentMaximum.setVar(item);
-                    }
+                    action.accept(item, currentMaximum);
                 }
             });
-            while (numThreads.getVar() < threads) {
-                synchronized (numThreads) {
-                    if (numThreads.getVar() < threads) {
-                        System.out.println(thread.getName() + " started");
-                        numThreads.setVar(numThreads.getVar() + 1);
-                        thread.start();
-                        break;
-                    }
-                }
-            }
-            return thread;
-        }).collect(Collectors.toList());
+        })).peek(Thread::start).collect(Collectors.toList());
         for (final Thread worker : workers) {
             worker.join();
         }
@@ -49,22 +41,38 @@ public class IterativeParallelism implements ScalarIP {
     }
 
     @Override
+    public <T> T maximum(int threads, List<? extends T> values, Comparator<? super T> comparator)
+            throws InterruptedException {
+        if (values.size() == 0) {
+            throw new NoSuchElementException("No values are given");
+        }
+        return this.<T, T>common(threads, values, (f, s) -> {
+            if (comparator.compare(s.getVar(), f) < 0) {
+                s.setVar(f);
+            }
+        }, new VarReference<>(values.get(0)));
+    }
+
+    @Override
     public <T> T minimum(int threads, List<? extends T> values, Comparator<? super T> comparator) throws InterruptedException {
-        return null;
+        return maximum(threads, values, comparator.reversed());
     }
 
     @Override
     public <T> boolean all(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
-        return false;
+        return !any(threads, values, predicate.negate());
     }
 
     @Override
     public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
-        return false;
+        if (values.size() == 0) {
+            throw new NoSuchElementException("No values are given");
+        }
+        return this.<T, Boolean>common(threads, values, (f, s) -> s.setVar(s.getVar() || predicate.test(f)), new VarReference<>(false));
     }
 
     public static void main(String[] args) throws InterruptedException {
         IterativeParallelism iterativeParallelism = new IterativeParallelism();
-        System.out.println(iterativeParallelism.maximum(2, List.of(1, 2, 1000, 3, 4, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), Comparator.naturalOrder()));
+        System.out.println(iterativeParallelism.all(2, List.of(1, 2, 1000, 3, 4, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), (f)-> f > 0));
     }
 }
