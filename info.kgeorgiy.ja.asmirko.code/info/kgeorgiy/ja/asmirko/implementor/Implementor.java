@@ -11,8 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.*;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.Function;
@@ -159,15 +157,9 @@ public class Implementor implements Impler, JarImpler {
     }
 
     private String toUnicode(String str) {
-        StringBuilder sb = new StringBuilder();
-        for (final char c : str.toCharArray()) {
-            if (c >= 128) {
-                sb.append(String.format("\\u%04X", (int) c));
-            } else {
-                sb.append(c);
-            }
-        }
-        return sb.toString();
+        return str.chars()
+                .mapToObj(c -> c >=128 ? String.format("\\u%04X", c) : String.valueOf((char) c))
+                .collect(Collectors.joining());
     }
 
     /**
