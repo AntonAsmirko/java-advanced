@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.lang.reflect.*;
 import java.net.URISyntaxException;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.function.Function;
 import java.util.jar.Attributes;
@@ -33,6 +34,20 @@ import java.util.zip.ZipEntry;
  */
 public class Implementor implements Impler, JarImpler {
 
+    private static final SimpleFileVisitor<Path> DELETE_VISITOR = new SimpleFileVisitor<>() {
+        @Override
+        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+            Files.delete(file);
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
+            Files.delete(dir);
+            return FileVisitResult.CONTINUE;
+        }
+    };
+
     /**
      * Generates jar file that contains generated class which implements given class or interface.
      *
@@ -53,6 +68,14 @@ public class Implementor implements Impler, JarImpler {
             implementor.implementJar(token, resultFile);
         } catch (ClassNotFoundException | ImplerException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (Files.exists(resultFile.subpath(0, 1))) {
+                    Files.walkFileTree(resultFile.subpath(0,1), DELETE_VISITOR);
+                }
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
     }
 
@@ -102,7 +125,6 @@ public class Implementor implements Impler, JarImpler {
         try (var jOS = new JarOutputStream(Files.newOutputStream(jarFile))) {
             String implementedPath = getAllParents(token).stream()
                     .map(Implementor::pathToSources)
-                    //.filter(path -> !path.equals(""))
                     .collect(Collectors.joining(File.pathSeparator));
             if (compiler.run(null, null, null, "-cp", implementedPath,
                     getPathToTargetFile(jarFile.getParent(), token, "java", File.separator).toString()) != 0) {
@@ -177,7 +199,7 @@ public class Implementor implements Impler, JarImpler {
      * @return {@link List} with token and all its parents.
      */
     private List<Class<?>> getAllParents(Class<?> token) {
-        List<Class<?>> parents = new ArrayList<>();
+        List<Class<?>> parents = new ArrayList<>(Arrays.asList(token.getInterfaces()));
         while (token != null) {
             parents.add(token);
             token = token.getSuperclass();
