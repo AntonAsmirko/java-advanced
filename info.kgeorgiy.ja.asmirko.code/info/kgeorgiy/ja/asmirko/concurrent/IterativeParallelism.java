@@ -18,7 +18,7 @@ public class IterativeParallelism implements ScalarIP {
 
     private <T> Stream<List<T>> partition(List<T> source, int length) {
         int chunkLen = source.size() / length;
-        return IntStream.range(0, length + 1)
+        return IntStream.range(0, length)
                 .mapToObj(n -> source.subList(n * chunkLen, n == length ? source.size() : (n + 1) * chunkLen));
     }
 
@@ -27,6 +27,7 @@ public class IterativeParallelism implements ScalarIP {
         if (values.size() == 0) {
             throw new NoSuchElementException("No values are given");
         }
+        var partition = partition(values, threads);
         List<Thread> workers = partition(values, threads).map(chunk -> new Thread(() -> chunk.forEach(item -> {
             synchronized (currentMaximum) {
                 action.accept(item, currentMaximum);
