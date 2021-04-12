@@ -35,19 +35,19 @@ public class Implementor implements Impler, JarImpler {
     /**
      * Generates jar file that contains generated class which implements given class or interface.
      *
-     * @param args  class-name, path to file.jar.
+     * @param args class-name, path to file.jar.
      */
     public static void main(String[] args) {
-        if (args.length < 3 || args[1] == null || args[2] == null) {
+        if (args.length < 2 || args[0] == null || args[1] == null) {
             System.out.println("Implementor should take two strings");
             return;
         }
-        Path resultFile = Path.of(args[2]);
+        Path resultFile = Path.of(args[1]);
         Class<?> token;
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
         Implementor implementor = new Implementor();
         try {
-            token = classLoader.loadClass(args[1]);
+            token = classLoader.loadClass(args[0]);
             implementor.implement(token, resultFile.getParent());
             implementor.implementJar(token, resultFile);
         } catch (ClassNotFoundException | ImplerException e) {
@@ -99,8 +99,10 @@ public class Implementor implements Impler, JarImpler {
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         try (var jOS = new JarOutputStream(Files.newOutputStream(jarFile))) {
-            String implementedPath = Path
-                    .of(token.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
+            String implementedPath = getAllParents(token).stream()
+                    .map(Implementor::pathToSources)
+                    //.filter(path -> !path.equals(""))
+                    .collect(Collectors.joining(File.pathSeparator));
             if (compiler.run(null, null, null, "-cp", implementedPath,
                     getPathToTargetFile(jarFile.getParent(), token, "java", File.separator).toString()) != 0) {
                 throw new ImplerException("Can't compile generated class");
@@ -108,14 +110,13 @@ public class Implementor implements Impler, JarImpler {
             Manifest manifest = new Manifest();
             manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
             manifest.getMainAttributes().put(Attributes.Name.IMPLEMENTATION_VENDOR, "Anton Asmirko");
-
             jOS.putNextEntry(new ZipEntry(JarFile.MANIFEST_NAME));
             manifest.write(jOS);
             ZipEntry jar = new ZipEntry(String.format("%s/%s", token.getPackageName().replace(".", "/"),
                     token.getSimpleName() + "Impl.class"));
             jOS.putNextEntry(jar);
             Files.copy(getPathToTargetFile(jarFile.getParent(), token, "class", "/"), jOS);
-        } catch (URISyntaxException | IOException e) {
+        } catch (RuntimeException | IOException e) {
             e.printStackTrace();
             throw new ImplerException(e.getMessage());
         }
@@ -158,13 +159,33 @@ public class Implementor implements Impler, JarImpler {
 
     /**
      * Converts given {@link String} to Unicode.
+     *
      * @param str {@link String} to translate to Unicode.
      * @return given {@link String} translated to Unicode.
      */
     private String toUnicode(String str) {
         return str.chars()
-                .mapToObj(c -> c >=128 ? String.format("\\u%04X", c) : String.valueOf((char) c))
+                .mapToObj(c -> c >= 128 ? String.format("\\u%04X", c) : String.valueOf((char) c))
                 .collect(Collectors.joining());
+    }
+
+    private List<Class<?>> getAllParents(Class<?> token) {
+        List<Class<?>> parents = new ArrayList<>();
+        while (token != null) {
+            parents.add(token);
+            token = token.getSuperclass();
+        }
+        return parents;
+    }
+
+    private static String pathToSources(Class<?> token) {
+        String result;
+        try {
+            result = Path.of(token.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
+        } catch (URISyntaxException | NullPointerException e) {
+            return "";
+        }
+        return result;
     }
 
     /**
@@ -190,6 +211,7 @@ public class Implementor implements Impler, JarImpler {
 
     /**
      * Removes <code>transient</code> and <code>abstract</code> modifiers from methods modifiers set.
+     *
      * @param modifiers int representing methods modifiers.
      * @return int representing methods modifiers without <code>transient</code> and <code>abstract</code>.
      */
@@ -320,6 +342,7 @@ public class Implementor implements Impler, JarImpler {
 
         /**
          * Computes hashcode of the {@link MethodWrapper}.
+         *
          * @return hash code of instance of {@link MethodWrapper}
          */
         @Override
@@ -330,6 +353,7 @@ public class Implementor implements Impler, JarImpler {
         /**
          * {@link MethodWrapper} equal to another MethodWrapper if their methods names are equal
          * and their parameter types are equal.
+         *
          * @param other other {@link Object}
          * @return true if this instance equals to other {@link MethodWrapper}
          */
