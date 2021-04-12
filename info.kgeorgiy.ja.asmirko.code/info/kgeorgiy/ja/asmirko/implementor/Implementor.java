@@ -26,6 +26,7 @@ import java.util.zip.ZipEntry;
  * The purposes of this class are generation of new java classes which implement given type token and
  * creation of jar files with generated classes.
  *
+ * @author Anton Asmirko
  * @see Class
  * @see Impler
  * @see JarImpler
@@ -169,6 +170,12 @@ public class Implementor implements Impler, JarImpler {
                 .collect(Collectors.joining());
     }
 
+    /**
+     * Returns {@link List} containing token and all its parents.
+     *
+     * @param token {@link Class} to get parents.
+     * @return {@link List} with token and all its parents.
+     */
     private List<Class<?>> getAllParents(Class<?> token) {
         List<Class<?>> parents = new ArrayList<>();
         while (token != null) {
@@ -178,6 +185,12 @@ public class Implementor implements Impler, JarImpler {
         return parents;
     }
 
+    /**
+     * Computes {@link String} representing path to sources of given {@link Class}.
+     *
+     * @param token {@link Class} to get sources.
+     * @return {@link String} representing path to sources of given {@link Class}.
+     */
     private static String pathToSources(Class<?> token) {
         String result;
         try {
@@ -196,17 +209,17 @@ public class Implementor implements Impler, JarImpler {
      * @return {@link Stream} of wrapper objects over methods of class represented by given type token.
      */
     private Stream<MethodWrapper> getAllMethods(Class<?> token) {
-        Stream<MethodWrapper> processedMethods = Arrays.stream(token.getMethods()).map(MethodWrapper::new);
-        while (token != null) {
-            processedMethods = Stream.concat(processedMethods,
-                    Arrays.stream(token.getDeclaredMethods())
-                            .filter(m -> {
-                                int modifiers = m.getModifiers();
-                                return !Modifier.isPrivate(modifiers) && !Modifier.isPublic(modifiers);
-                            }).map(MethodWrapper::new));
-            token = token.getSuperclass();
-        }
-        return processedMethods.distinct().filter(m -> Modifier.isAbstract(m.method.getModifiers()));
+        return Stream.concat(
+                Arrays.stream(token.getMethods()).map(MethodWrapper::new),
+                getAllParents(token).stream()
+                        .map(clazz -> Arrays.asList(clazz.getDeclaredMethods()))
+                        .flatMap(List::stream)
+                        .filter(m -> {
+                            int modifiers = m.getModifiers();
+                            return !Modifier.isPrivate(modifiers) && !Modifier.isPublic(modifiers);
+                        }).map(MethodWrapper::new))
+                .distinct()
+                .filter(m -> Modifier.isAbstract(m.method.getModifiers()));
     }
 
     /**

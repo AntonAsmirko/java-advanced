@@ -1,22 +1,25 @@
 package info.kgeorgiy.ja.asmirko.concurrent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Anton Asmirko
  */
 
 class VarReference<T> {
 
-    private T var;
+    private List<T> var = new ArrayList<>();
 
     public VarReference(T var) {
-        this.var = var;
+        this.var.add(var);
     }
 
-    public T getVar() {
+    public List<T> getVar() {
         return var;
     }
 
-    public void setVar(T var) {
-        this.var = var;
+    public void addVar(T var) {
+        this.var.add(var);
     }
 }
