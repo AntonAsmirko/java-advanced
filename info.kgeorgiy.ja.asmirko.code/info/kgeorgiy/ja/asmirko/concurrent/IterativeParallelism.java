@@ -1,90 +1,91 @@
-//package info.kgeorgiy.ja.asmirko.concurrent;
-//
-//import info.kgeorgiy.java.advanced.concurrent.ScalarIP;
-//
-//import java.util.Comparator;
-//import java.util.List;
-//import java.util.NoSuchElementException;
-//import java.util.function.*;
-//import java.util.stream.Collectors;
-//import java.util.stream.IntStream;
-//import java.util.stream.Stream;
-//
-    ///**
-    // * @author Anton Asmirko
-    // */
-//public class IterativeParallelism implements ScalarIP {
-//
-//    private <T> Stream<List<T>> partition(List<T> source, int length) {
-//        int chunkLen = source.size() / length;
-//        return IntStream.range(0, length)
-//                .mapToObj(n -> source.subList(n * chunkLen, n == length ? source.size() : (n + 1) * chunkLen));
-//    }
-//
-//    private <T> T common(int threads, List<? extends T> values, BinaryOperator<? extends T> op) throws InterruptedException {
-//        if (values.size() == 0) {
-//            throw new NoSuchElementException("No values are given");
-//        }
-//        List<Thread> workers = partition(values, threads).map(chunk -> {
-//            ChunkRunnable<? extends T> chunkRunnable = new ChunkRunnable<>(chunk);
-//            chunkRunnable.setFn(op);
-//            new Thread(new ChunkRunnable<>(chunk));
-//        }).peek(Thread::start).collect(Collectors.toList());
-//        for (final Thread worker : workers) {
-//            worker.join();
-//        }
-//        return currentMaximum.getVar();
-//    }
-//
-//    @Override
-//    public <T> T maximum(int threads, List<? extends T> values, Comparator<? super T> comparator)
-//            throws InterruptedException {
-//        if (values.size() == 0) {
-//            throw new NoSuchElementException("No values are given");
-//        }
-//        return this.<T, T>common(threads, values, (f, s) -> {
-//            if (comparator.compare(s.getVar(), f) < 0) {
-//                s.addVar(f);
-//            }
-//        }, new VarReference<>(values.get(0)));
-//    }
-//
-//    @Override
-//    public <T> T minimum(int threads, List<? extends T> values, Comparator<? super T> comparator) throws InterruptedException {
-//        return maximum(threads, values, comparator.reversed());
-//    }
-//
-//    @Override
-//    public <T> boolean all(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
-//        return !any(threads, values, predicate.negate());
-//    }
-//
-//    @Override
-//    public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
-//        return this.<T, Boolean>common(threads, values, (f, s) -> s.addVar(s.getVar() || predicate.test(f)), new VarReference<>(false));
-//    }
-//
-//    private static class ChunkRunnable<T> implements Runnable {
-//
-//        private T result;
-//        private BinaryOperator<T> fn;
-//        private List<T> chunk;
-//
-//        public ChunkRunnable(List<T> chunk){
-//            this.chunk = chunk;
-//        }
-//
-//        public void setFn(BinaryOperator<T> fn){
-//            this.fn = fn;
-//        }
-//
-//        @Override
-//        public void run() {
-//            this.result = chunk.stream().reduce(fn).get();
-//        }
-//
-//        public <T> void setFn(BinaryOperator<? extends T> op) {
-//            this.fn = op;
-//        }
-//    }
-//}
+package info.kgeorgiy.ja.asmirko.concurrent;
+
+import info.kgeorgiy.java.advanced.concurrent.ScalarIP;
+
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+/**
+ * @author Anton Asmirko
+ */
+public class IterativeParallelism implements ScalarIP {
+
+    private <T> Stream<List<T>> partition(List<T> source, int length) {
+        int chunkLen = source.size() / length;
+        if (chunkLen == 0) {
+            return source.stream().map(List::of);
+        }
+        return IntStream.range(0, length)
+                .mapToObj(n -> source.subList(n * chunkLen, n == length - 1 ? source.size() : (n + 1) * chunkLen))
+                .filter(l -> !l.isEmpty());
+    }
+
+    private <T, U> U common(int threads, List<? extends T> values, Function<List<? extends T>, U> op,
+                            Function<List<U>, U> resOp) throws InterruptedException {
+        if (values.isEmpty()) {
+            throw new NoSuchElementException();
+        }
+        List<MyPair<ChunkRunnable<T, U>, Thread>> workers = partition(values, threads)
+                .map(chunk -> new ChunkRunnable<>(op, chunk))
+                .map(chunkRunnable -> new MyPair<>(chunkRunnable, new Thread(chunkRunnable)))
+                .peek(p -> p.s.start())
+                .collect(Collectors.toList());
+        List<U> results = new ArrayList<>();
+        for (final MyPair<ChunkRunnable<T, U>, Thread> worker : workers) {
+            worker.s.join();
+            results.add(worker.f.result);
+        }
+        return resOp.apply(results);
+    }
+
+    @Override
+    public <T> T maximum(int threads, List<? extends T> values, Comparator<? super T> comparator) throws InterruptedException {
+        return common(threads, values, (list) -> list.stream().max(comparator).orElseThrow(), (list) -> list.stream().max(comparator).orElseThrow());
+
+    }
+
+    @Override
+    public <T> T minimum(int threads, List<? extends T> values, Comparator<? super T> comparator) throws InterruptedException {
+        return maximum(threads, values, comparator.reversed());
+    }
+
+    @Override
+    public <T> boolean all(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
+        return !any(threads, values, predicate.negate());
+    }
+
+    @Override
+    public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
+        return common(threads, values, (list) -> list.stream().anyMatch(predicate), (list) -> list.stream().anyMatch(item -> item));
+    }
+
+    private static class ChunkRunnable<T, U> implements Runnable {
+
+        private U result;
+        private final Function<List<? extends T>, U> fn;
+        private final List<? extends T> chunk;
+
+        public ChunkRunnable(Function<List<? extends T>, U> fn, List<? extends T> chunk) {
+            this.fn = fn;
+            this.chunk = chunk;
+        }
+
+        @Override
+        public void run() {
+            this.result = fn.apply(chunk);
+        }
+    }
+
+    private static class MyPair<F, S> {
+        public final F f;
+        public final S s;
+
+        public MyPair(F f, S s) {
+            this.f = f;
+            this.s = s;
+        }
+    }
+}

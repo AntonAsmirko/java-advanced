@@ -34,20 +34,6 @@ import java.util.zip.ZipEntry;
  */
 public class Implementor implements Impler, JarImpler {
 
-    private static final SimpleFileVisitor<Path> DELETE_VISITOR = new SimpleFileVisitor<>() {
-        @Override
-        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-            Files.delete(file);
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
-            Files.delete(dir);
-            return FileVisitResult.CONTINUE;
-        }
-    };
-
     /**
      * Generates jar file that contains generated class which implements given class or interface.
      *
@@ -64,18 +50,9 @@ public class Implementor implements Impler, JarImpler {
         Implementor implementor = new Implementor();
         try {
             token = classLoader.loadClass(args[0]);
-            implementor.implement(token, resultFile.getParent());
             implementor.implementJar(token, resultFile);
         } catch (ClassNotFoundException | ImplerException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (Files.exists(resultFile.subpath(0, 1))) {
-                    Files.walkFileTree(resultFile.subpath(0,1), DELETE_VISITOR);
-                }
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
         }
     }
 
@@ -121,11 +98,17 @@ public class Implementor implements Impler, JarImpler {
      */
     @Override
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        try {
+            Path tmpPath = Files.createTempDirectory(jarFile.getParent(), "temp");
+        } catch (IOException e) {
+
+        }
+        implement(token, jarFile.getParent());
         try (var jOS = new JarOutputStream(Files.newOutputStream(jarFile))) {
             String implementedPath = getAllParents(token).stream()
                     .map(Implementor::pathToSources)
                     .collect(Collectors.joining(File.pathSeparator));
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             if (compiler.run(null, null, null, "-cp", implementedPath,
                     getPathToTargetFile(jarFile.getParent(), token, "java", File.separator).toString()) != 0) {
                 throw new ImplerException("Can't compile generated class");
@@ -171,7 +154,9 @@ public class Implementor implements Impler, JarImpler {
         try {
             Path file = getPathToTargetFile(root, token, "java", File.separator);
             Files.createDirectories(root.resolve(token.getPackageName().replace(".", File.separator)));
-            Files.createFile(file);
+            if (!Files.exists(file)) {
+                Files.createFile(file);
+            }
             try (BufferedWriter bw = Files.newBufferedWriter(file)) {
                 bw.write(toUnicode(result));
             }
